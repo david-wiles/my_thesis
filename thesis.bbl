@@ -1,0 +1,69 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Albakri, Shanmugam, Samy, Idris, and Ahmed}{Albakri
+  et~al.}{2014}]{AlbakriSameerHasan2014Sraf}
+S.~H.~Albakri, B.~Shanmugam, G.~N.~Samy, N.~B.~Idris, and A.~Ahmed (2014).
+\newblock Security risk assessment framework for cloud computing environments.
+\newblock {\em Blackwell Publishing Ltd\/}.
+
+\bibitem[\protect\citeauthoryear{Sultan, Ahmad, and Dimitriou}{Sultan
+  et~al.}{2019}]{SultanSari2019CSIC}
+S.~Sultan, I.~Ahmad, T.~Dimitriou (2019).
+\newblock Container Security: Issues, Challenges, and the Road Ahead.
+\newblock {\em IEEE\/}.
+
+\bibitem[\protect\citeauthoryear{Wan, Lo, Xia, and Cai}{Wan
+  et~al.}{2019}]{WanZhiyuan2019Paes}
+Z.~Wan, D.~Lo, X.~Xia, L.~Cai (2019).
+\newblock Practical and effective sandboxing for Linux containers.
+\newblock {\em Springer US\/}.
+
+\bibitem[\protect\citeauthoryear{Chae, Lee, and Lee}{Chae
+  et~al.}{2017}]{ChaeMinSu2017Apco}
+M.~Chae, H.~Lee, and K.~Lee (2017).
+\newblock A performance comparison of linux containers and virtual machines using Docker and KVM.
+\newblock {\em Springer US\/}.
+
+\bibitem[\protect\citeauthoryear{Choi, Park, Eom, and Chung}{Choi
+  et~al.}{2014}]{ChoiYoung-Hyun2014Dbaf}
+Y.~Choi, M.~Park, J.~Eom, and T.~Chung (2014).
+\newblock Dynamic binary analyzer for scanning vulnerabilities with taint analysis.
+\newblock {\em Springer US\/}.
+
+\bibitem[\protect\citeauthoryear{Herrmann, Zimmerman, Radvan, Richardson, Moore, Seifried, and Jorm}{Herrmann
+  et~al.}{2019}]{redhatcustomerservice}
+J.~Herrmann, Y.~Zimmerman, S.~Radvan, T.~Richardson, P.~Moore, K.~Seifried, and D.~Jorm (2019).
+\newblock Virtualization Security Guide Red Hat Enterprise Linux 7.
+\newblock {\em Red Hat, Inc\/}.
+
+\bibitem[\protect\citeauthoryear{RAND Corporation}{RAND Corporation}{2017}]{cdi_proquest_reports_1875964326}
+RAND Corporation (2019).
+\newblock RAND Study Examines 200 Real-World 'Zero-Day' Software Vulnerabilities.
+\newblock {\em Advantage Business Media\/}.
+
+\bibitem[\protect\citeauthoryear{J.~Richter}{J.~Richter}{2017}]{monkey_in_the_middle}
+RAND Corporation (2019).
+\newblock Monkey In The Middle.
+\newblock {\em Penn State University\/}.
+
+\bibitem[\protect\citeauthoryear{National Institute of Standards and Technology}{National Institute of Standards and Technology}{2022}]{CVE-2022-0185}
+National Institute of Standards and Technology (2022).
+\newblock CVE-2022-0185 Detail.
+\newblock {\em National Institute of Standards and Technology\/}.
+
+\bibitem[\protect\citeauthoryear{A.P. Publications Ltd}{A.P. Publications Ltd}{2020}]{cdi_gale_infotrac_627280924}
+A.P. Publications Ltd (2020).
+\newblock 1 in 3 Fall Victim to Phishing Attacks: Lockdown Amplifies Password Security Flaws.
+\newblock {\em A.P. Publications Ltd\/}.
+
+\bibitem[\protect\citeauthoryear{The Linux Foundation}{The Linux Foundation}{2022}]{linux_namespaces_man_page}
+The Linux Foundation (2022).
+\newblock namespaces - overview of Linux namespaces.
+\newblock {\em The Linux Foundation\/}.
+
+\bibitem[\protect\citeauthoryear{Docker, Inc.}{Docker, Inc.}{2022}]{docker_docs_tls_verifye}
+Docker, Inc. (2022).
+\newblock Protect the Docker daemon socket
+\newblock {\em Docker, Inc.\/}.
+
+\end{thebibliography}

@@ -1,0 +1,22 @@
+\chapter{Conclusions and Future Work}
+\section{On the Utility of Security Scanners and Audits}
+
+Security in cloud environments is difficult to accomplish. There are countless attack surfaces when virtualization or
+containerization is used and standards are constantly changing to adapt to new research or software. Although an
+experienced administrator may have knowledge of the entire security best practices for their system, it is much more
+thorough to maintain a program which can scan a system and automatically fix any major issues. Additionally, these
+scanners can be run periodically to ensure that a system was not unintentionally modified or to ensure that new
+standards have been met.
+
+Although my program aims to focus on configuration of the operating system itself, similar programs could be created
+to scan the configuration of a specific software. For example, it would be prudent to scan any database systems in
+production for configuration errors to ensure that no unauthorized access is possible. We also see a form of security
+scanner in the NPM package manager. This package manager will alert the user if any packages used in their program
+contain known security vulnerabilities, and provide an easy way to upgrade those packages if possible.
+
+\section{Future Work}
+
+Tools such as this one may be built into the server programs they are associated with. A database server may give a
+warning when the root user is set up, for example. This is a minimal example of what this program does. The primary
+issue with this kind of tool is that the system's configuration may be dependent on the organization’s requirements.
+However, we can make some general assumptions about the system and also allow for future extensibility.

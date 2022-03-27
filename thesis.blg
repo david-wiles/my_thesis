@@ -1,0 +1,122 @@
+This is BibTeX, Version 0.99d (TeX Live 2012/W32TeX)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: thesis.aux
+The style file: chicago.bst
+A level-1 auxiliary file: ./chapters/chapter1.aux
+A level-1 auxiliary file: ./chapters/chapter2.aux
+A level-1 auxiliary file: ./chapters/chapter3.aux
+A level-1 auxiliary file: ./chapters/chapter4.aux
+A level-1 auxiliary file: ./chapters/chapter5.aux
+A level-1 auxiliary file: ./chapters/chapter6.aux
+A level-1 auxiliary file: ./chapters/chapter7.aux
+Database file #1: ./ReferencesN2.bib
+Warning--entry type for "0030" isn't style-file defined
+--line 208 of file ./ReferencesN2.bib
+Warning--entry type for "0031" isn't style-file defined
+--line 217 of file ./ReferencesN2.bib
+Warning--entry type for "0032" isn't style-file defined
+--line 226 of file ./ReferencesN2.bib
+Warning--entry type for "0033" isn't style-file defined
+--line 235 of file ./ReferencesN2.bib
+Warning--entry type for "0034" isn't style-file defined
+--line 244 of file ./ReferencesN2.bib
+Warning--entry type for "0035" isn't style-file defined
+--line 253 of file ./ReferencesN2.bib
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1563 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1563 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1563 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1608 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1608 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1608 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1608 of file chicago.bst
+Warning--no number and no volume in 0027
+Warning--page numbers missing in 0027
+Warning--no number and no volume in 0001
+Warning--page numbers missing in 0001
+Warning--no number and no volume in :ao
+Warning--page numbers missing in :ao
+Warning--empty year in 0026
+Warning--no number and no volume in 0015
+Warning--page numbers missing in 0015
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1645 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1645 of file chicago.bst
+Name 1 in "Fu, Yangchun, Junyuan Zeng, and Zhiqiang Lin" has a comma at the end for entry 0002
+while executing---line 1645 of file chicago.bst
+Warning--no number and no volume in 0002
+Warning--page numbers missing in 0002
+Warning--no number and no volume in 0012
+Warning--page numbers missing in 0012
+Warning--no journal in 0006
+Warning--no number and no volume in 0006
+Warning--page numbers missing in 0006
+Warning--no journal in 0005
+Warning--no number and no volume in 0005
+Warning--page numbers missing in 0005
+Warning--no number and no volume in 0013
+Warning--page numbers missing in 0013
+Warning--no number and no volume in :aj
+Warning--page numbers missing in :aj
+Warning--no number and no volume in 0020
+Warning--page numbers missing in 0020
+Warning--no number and no volume in 0014
+Warning--page numbers missing in 0014
+Warning--no number and no volume in 0003
+Warning--page numbers missing in 0003
+Warning--empty organization in 0004
+Warning--no number and no volume in 0022
+Warning--page numbers missing in 0022
+Warning--no number and no volume in 0021
+Warning--page numbers missing in 0021
+Warning--no number and no volume in 0017
+Warning--page numbers missing in 0017
+You've used 40 entries,
+            2861 wiz_defined-function locations,
+            776 strings with 10824 characters,
+and the built_in function-call counts, 25646 in all, are:
+= -- 2031
+> -- 2071
+< -- 2
++ -- 614
+- -- 700
+* -- 2171
+:= -- 4805
+add.period$ -- 110
+call.type$ -- 40
+change.case$ -- 289
+chr.to.int$ -- 40
+cite$ -- 76
+duplicate$ -- 748
+empty$ -- 1513
+format.name$ -- 796
+if$ -- 4725
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 31
+newline$ -- 189
+num.names$ -- 390
+pop$ -- 310
+preamble$ -- 1
+purify$ -- 536
+quote$ -- 0
+skip$ -- 733
+stack$ -- 0
+substring$ -- 846
+swap$ -- 211
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 800
+warning$ -- 36
+while$ -- 329
+width$ -- 0
+write$ -- 500
+(There were 10 error messages)

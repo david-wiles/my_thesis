@@ -1,0 +1,50 @@
+\chapter{INTRODUCTION}
+
+\section{Current Cloud Computing Landscape}
+
+\subsection{Public Cloud and the Linux Kernel}
+A quick glance at the offerings provided by Amazon Web Services shows that web hosting in 2022 is heavily based around
+virtualization.  Virtual machines are cheaper for the provider and customer, more efficient, and easier to work with.
+A new, identical virtual machine can be created programmatically using tools provided by Amazon. Additionally, after
+the introduction of Docker in 2013 containers have quickly become the preferred way to test and deploy code due to their ease
+of use.  Since there may be software from many different customers running on a single CPU concurrently, we may assume
+that this would be a major security issue.
+
+Thanks to the work by many talented developers working on KVM, LXC, and Docker, we can assume that there are a limited
+number of critical vulnerabilities in the actual virtualization layer. The majority of issue arise from misconfiguration
+of the host machine or the virtualization itself.  This may include overly-permissive rules for programs or users,
+exposed secrets, a lack of resource management, and other issues which will be discussed in this paper. Although by
+default the attack surface for these services is very large, we can use tools to detect issues and automatically fix
+them to ensure that host systems are secure from attacks from within the virtual machines.
+
+\subsection{Complicance and Malware Scanning}
+Compliance scanners exist which detect configuration issues as defined by a standard compiled by an organization
+defining standards for system configurations. These standards may be required for certain organizations or governments
+to ensure security, but can also provide a good starting point for a business or organization which does not have this
+compliance regulated. OpenShift, a platform provided by Red Hat, does include a compliance scanner with the service.
+This scanner will determine whether the system configuration meets the standards.
+
+These scanners can be combined with dynamic binary analyzers to determine if a program has been infected at runtime,
+such as through a specially crafted input to a library such as log4j. Choi, Park, Eom, and Chung detail a system which
+could be used to determine the presence of malware at runtime~\cite{ChoiYoung-Hyun2014Dbaf}. Despite these protections,
+a system should always be built to withstand any attacks as much as possible through careful analysis of the system's
+configuration.
+
+\section{Common Attacks}
+
+In general, an attacker may wish to achieve one of three goals when compromising a system. These goals are gaining
+control of the system, reading sensitive data, or denying access to the system. Proper configuration of the system is
+critical to preventing the attacker form achieving these goals, even if they are able to exploit one part of the system.
+Gaining control of a system is the most critical issue for a server machine. This could be achieved by exploiting bugs
+in programs leading to arbitrary code execution, but is probably more commonly caused by improperly hidden passwords.
+A rogue user on a system can cause damage even if they don't have root access.
+
+\subsection {InfoLeak}
+A related issue to improperly stored or hidden passwords is improperly secured sensitive data. Any data generated or
+stored by a server should be considered sensitive, since an attacker could infer a considerable amount from log files
+or other seemingly innocuous files. Additionally, hardware issues such as timing attacks can also lead to an attacker
+gaining knowledge of a system without leaving the data itself exposed.
+
+\subsection {Denial of Service}
+Denial of service is likely the most common attack on cloud systems today. This may come in the form of ransomware,
+general degradation of service, or even a distributed denial of service attack.

@@ -1,0 +1,169 @@
+\chapter{Docker Considerations}
+
+This chapter will examine security considerations for a system using linux containers, and specifically Docker.
+
+\section{Introduction}
+
+\subsection{Overview of Docker}
+
+This section will examine the default security settings of Docker, how they could be tailored to an individual
+deployment's needs, and what attack vectors exist when using the Docker engine. Docker is the most commonly used
+container platform in use today. The ease of use combined with lower performance overhead compared to Virtual Machines
+has led to container usage to become just as common as VM's. Although Docker is very useful in development situations
+we also see its use in production systems, which will be the focus of this discussion. Docker relies on many features
+in the Linux kernel to ensure that the processes are separated from others on the same machine, but does not use any
+hardware features in the CPU like KVM or other hypervisor would be able to take advantage of.
+
+Kubernetes (K8s) is a very prominent software used to orchestrate hundreds or even thousands of containers across
+multiple machines for load balancing and availability purposes. This paper however will focus on simple configuration
+practices and will not discuss K8s, although it is worthy of mention due to its widespread use.
+
+\subsection{Performance and Linux Namespaces}
+
+Docker and other container engines are able to achieve lower performance overhead compared to virtual machines by only
+containing the necessary libraries and packages for its use and depending on the host's kernel for the traditional work of
+the operating system. This creates a much larger attack surface since the entire OS is shared, although kernel features
+such as namespaces and cgroups are utilized to separate the container's processes from others on the same machine.
+Linux provides namespaces for system resources, network, processes, process communication, users, time, and domains.
+These can be read in greater detail on the linux namespaces man page~\cite{linux_namespaces_man_page}. Linux namespaces
+provides the basis for containers themselves and are critical to the security of containers.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{./fig/Docker application nesting.drawio.png}
+    \end{center}
+    \caption{Docker and other container runtimes depend on Linux kernel features to isolate processes. This means that the application code is entirely in user space, including the container runtime.}
+    \label{fig3}
+\end{figure}
+
+\subsection{Deployment Considerations}
+
+Docker has become the de-facto containerization solution since its inception and can be credited with the shift of
+containerization from virtualization. The tools provided by Docker make it very easy to create new containers, share
+images, and reproduce the systems used by others. Additionally, container orchestration technologies such as Kubernetes
+has made shifting a production system to containers instead of VM's more attractive. These tools often choose sane
+defaults for security, but there can still be gaps in this setup. These issues are compounded by the fact that it is
+possible to override these defaults for the sake of ease of setup, which can creep into production systems when settings
+from development environments are evaluated when copied over.
+
+When evaluating the security settings of a system using Docker, we must take note of where the system will be deployed
+and its intended uses. Many developers will use Docker on their development system since it is easy to replicate a
+production environment locally, but this type of deployment does not necessarily need extra security above the default
+levels unless the system is being tested specifically for vulnerabilities. A production system hand should have the most
+restrictive settings possible and should be thoroughly evaluated for gaps in security.
+
+\subsection{Similar Software}
+
+The security considerations taken by Docker to separate containers from each other as well as their host can be used as
+a good starting point for other containerization systems. Docker may be the most popular system, but there are countless
+others which are used by other platforms and may be made necessary due to platform constraints. In the following section
+we will evaluate the configuration needed to set up Docker as well as display how to check whether these parameters are
+properly set.
+
+\begin{center}
+    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+        \hline
+        Issue & Attack Type & Affected Components \\ [0.5ex]
+        \hline\hline
+        Docker socket access & Privilege escalation & Access control, Docker engine \\
+        \hline
+        Docker volumes & Denial of service, InfoLeak & File System \\
+        \hline
+        AppArmor profiles and seccomp configuration & Arbitrary code execution, privilege escalation & Access control, OS kernel \\
+        \hline
+        Docker network setup & InfoLeak & Network \\ [0.5ex]
+        \hline
+    \end{tabular}
+\end{center}
+
+
+\section{Securing the Docker Socket}
+
+The daemon is the entry point to the container runtime and the containers themselves, so any process which can access
+the socket has control over the entire Docker system.  We will also want to ensure that each container uses its own
+namespace, and that the namespace is sufficiently restrictive.
+
+\subsection{Importance of the Docker socket}
+
+Any process which can interact with the Docker daemon could impact any container or image on the system, so it is
+important to secure access to this UNIX socket or TCP port. If the Docker containers will reside on a single machine,
+this can be done by simply restricting access to only the user which will be running the daemon processes. If it's
+required that the system must expose the daemon to the external network, the socket should be secured with TLS to ensure
+the identity of the connection. It is easy to check whether users can read the docker socket, but if the socket is
+exposed to the network it is more difficult to determine whether it is secure, and message should be shown to the user
+warning them of this issue.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=1\textwidth]{./fig/Docker Socket.drawio.png}
+    \end{center}
+    \caption{The Docker socket is the point of control for everything related to Docker containers. Access to this would enable the attacker full access to the system.}
+    \label{fig4}
+\end{figure}
+
+\subsection{Docker socket protection}
+
+If the Docker socket is exposed to the network, then the configuration issue can be considered a network issue, but if
+not then it is relegated to user and file permissions. The unix socket requires root permissions by default, but once
+exposed to the network it may be accessed by any machine which knows the port and IP combination. To mitigate attacks,
+tlsverify should be required by the docker socket and certificates should be generated and only distributed to trusted
+systems or users. These steps are outlined in Docker's own documentation~\cite{docker_docs_tls_verify}.
+
+\section{Securing Docker Volumes}
+
+Docker volume misconfiguration pose a threat to a system two ways. This could lead to a denial-of-service or info leak
+attack.
+
+\subsection{File System Size Constraints}
+
+The first is through lack of size constraints. A ontainer using a volume without size constraints could fill up the
+entire filesystem with data, preventing other users from writing data and potentially crippling the IO performance of the machine.
+
+\subsection{Shared Files}
+The second way a volume could pose a threat is through shared files. A Docker volume could also be shared between the
+host or other containers. Should the shared volume be mounted at a point which contains sensitive files in the subtree,
+then these files would be visible to the other container and could potentially leak data to a malicious actor.
+
+\subsection{Volume issue remediation}
+One solution for both problems is to designate a separate partition for the Docker volumes to reside. This will ensure
+that a runaway container can't attack the host through the file system, and no files used by the host will be accessible
+by a container. This could still result in a single container filling up the partition and denying service for the other
+containers. Preventing this would require setting a fixed size for Docker volumes or some other unique solution for the
+container.
+
+\section{AppArmor profiles and seccomp configurations}
+
+Containers are more susceptible to issues since the OS is not fully virtualized as it is within a hypervisor.
+Using Linux's security namespaces is absolutely necessary to ensure that the containers are not able to access the full
+resources of the host. Taking a look at how Docker handles this shows a good default setup.
+
+\subsection {Docker and Linux Namespaces}
+
+A container is not a jailed process, but has extra security to ensure that this process is separated from the rest of the
+host's processes. Linux namespaces allow separation of resources for a well-defined set of processes, which is a
+necessity for containers to run without full virtualization. Unless otherwise specified, each Docker container will be
+created with its own namespace. We can test the namespace separation for a set of containers if we know their PID's.
+If the namespaces are not set up correctly, we can alert the user of the issue. An analysis of container security issues
+by Sultan, Ahmad, and Dimitriou found that most container security considerations are resolved by features in the Linux
+kernel, chiefly namespaces and AppArmor settings~\cite{SultanSari2019CSIC}. They also found that protection of the
+container from the host itself can be achieved through hardware means. This shows that as long as sane defaults are not
+removed, security between containers or between the container and host are not an issue of concern for the user of the
+container.
+
+\subsection {Seccomp settings}
+
+Each container will receive a default seccomp setup which should prevent the majority of system calls which could
+undermine the security of the overall system. However, this default configuration could be less permissive than
+necessary than the container needs since a container may only perform simple tasks during its operation. A technique used
+by Wan, Lo, and Xia show that we can trace the system calls used by a container and use the result to limit the seccomp
+configuration of the container to disallow any other system calls~\cite{WanZhiyuan2019Paes}. This should be done
+whenever possible to limit the attack surface on the container when used in a production environment.
+
+\section{Docker Network Settings}
+
+A new container will use the default network, which allows access to all other containers in the network. Unless this
+is the desired behavior, containers should have their own networks or use a network containing only the containers
+through which communication is necessary.
+
+We can check this easily using the Docker client. If a container is using the default network, the user will be prompted
+to create a network for that container.

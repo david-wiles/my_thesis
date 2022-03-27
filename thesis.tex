@@ -1,0 +1,112 @@
+\documentclass{AlabamaManuscript}
+%\documentclass[dissertation]{uathesis}
+
+\usepackage{AMMALanguages,textcomp,upquote}
+\usepackage{listings}
+\usepackage{amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[page,title,toc]{appendix}
+%\renewcommand{\appendixname}{Appendix}
+\usepackage{framed}
+\usepackage{subfig}
+\usepackage{textcase}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{chngcntr}
+\counterwithout{footnote}{chapter}
+\usepackage{epigraph}
+\usepackage{cleveref}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\setlength\epigraphwidth{\textwidth}
+\setlength\epigraphrule{0pt}
+%\usepackage[cmex10]{amsmath}
+\usepackage{etoolbox}
+\BeforeBeginEnvironment{lstlisting}{\begin{singlespace}}
+\AfterEndEnvironment{lstlisting}{\end{singlespace}\noindent\ignorespaces}
+
+\begin{document}
+\author{David Wiles} %% Your name!
+
+\title{Canary: An Automated Approach to Security Scanning and Remediation}
+\date{April 2022}
+
+%\newcommand{\cpp}{C\raise.22ex\hbox{{\footnotesize +}}\raise.22ex\hbox{\footnotesize +}}
+
+\newsavebox{\mylistingbox}
+%\patchcmd{\epigraph}{\@epitext{#1}}{\itshape\@epitext{#1}}{}{}%
+
+\maketitle
+
+\newpage
+\begin{center}
+CANARY: AN AUTOMATED APPROACH TO SECURITY \\SCANNING AND REMEDIATION
+\end{center}
+\vspace{2.5in}
+
+\begin{flushright}
+\noindent\begin{tabular}{l}
+\makebox[2.75in]{\hrulefill} \\
+Date Recommended \\ \\
+%\vspace{.25in}
+\makebox[2.75in]{\hrulefill}\\
+Dr. Guangming Xing, Director of Thesis \\ \\
+%\vspace{.25in}
+\makebox[2.75in]{\hrulefill}\\
+Dr. Michael Galloway \\ \\
+%\vspace{.25in}
+\makebox[2.75in]{\hrulefill}\\
+Dr. Qi Li\\
+\end{tabular}
+\end{flushright}
+\vspace{2.5in}
+\begin{flushleft}
+\makebox[3in]{\hrulefill}\\
+Dean, Graduate Studies and Research \quad Date
+\end{flushleft}
+\newpage
+						% following parts are moved around to have the order of WKU example
+
+\begin{dedication}
+\input{dedication}
+\end{dedication}
+\begin{acknowledgments}
+\input{acknowledgments}
+\end{acknowledgments}
+
+
+\tableofcontents
+%\listoftables
+
+\listoffigures
+\listofsymbols
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\begin{body}
+
+\include{./chapters/chapter1}
+\include{./chapters/chapter2}
+\include{./chapters/chapter3}
+\include{./chapters/chapter4}
+\include{./chapters/chapter5}
+\include{./chapters/chapter6}
+
+
+
+\end{body}
+
+\nocite{*}
+\bibliography{./References}
+\begin{appendices}
+\input{appendix}
+\end{appendices}
+\end{document}
+
+ %vim:syntax=tex

@@ -1,0 +1,52 @@
+\chapter{Canary Purpose, Design, and Usage}
+
+This program is fairly simple and was designed to be extendable based on the needs of an individual or organization.
+There exist similar security scanners like this, but this one was built to be generic for any Linux system and easy to
+integrate with common provisioning frameworks.
+
+\subsection{Purpose}
+
+My goal in creating this software was to see if a system could be examined for common vulnerabilities programmatically.
+Although there are many books written about setting up a system securely and many VM images can be found with best
+practices already configured, I was unable to find a generic program which could assist in scanning a system for issues.
+In light of this and driven by my curiosity in the importance of system configuration in security, I decided to start
+on a simple program to scan systems for best practices in system configuration. This program was eventually called
+'canary' and was expanded to include scanning for Docker and KVM issues, as well as allowing for user-configured tests
+driven by shell files.
+
+\subsection{Inspiration}
+
+The inspiration for my system came from the package manager for node, 'npm'.  Whenever the user installs new software,
+npm will automatically scan the packages for vulnerabilities and generate a report for the user. The software will also
+automatically upgrade the affected packages if possible. I envisioned a similar program for linux machines which would
+scan a system for misconfiguration and report to the user issues which were found. Then, if these issues could be easily
+fixed programmatically, then the user could run a script to fix the issues. Of course, this does not guarantee safety
+or even that the system would work, but it would provide a good starting point for an engineer who is setting up a system.
+
+\subsection{Development and Iteration}
+
+The first version of my program used the Docker and KVM API's directly to analyze the host and guest systems. I soon
+realized that the same actions could be done through shell scripts with a higher degree of customization available to
+the end user, with no affect on functionality. The final version uses a separate directory for analysis scripts, which
+opens the possibility of having a separate 'registry' of canary scripts from which the user could download and upgrade
+as needed.
+
+\subsection{Design}
+
+This program is a simple command-line program, written in Go. As with any other command-line program, the arguments are
+first parsed to determine the specific action. The program will then determine the user's intent and scans the system
+for the specified types of vulnerability. Once the scan is complete, if a fix is available then the user is prompted
+to automatically fix the issue.
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{./fig/Canary Flowchart.drawio.png}
+    \end{center}
+    \caption{The execution of Canary is essentially a single loop with runs bash files.}
+    \label{fig1}
+\end{figure}
+
+\subsection{Usage}
+
+Canary is a command-line program, so it naturally can be used by an administrator or engineer. However, it also could
+be used effectively in a devops pipeline to ensure that security considerations are met before deployment.

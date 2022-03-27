@@ -1,0 +1,173 @@
+\chapter{KVM Host Considerations}
+
+A machine used as a host for KVM virtual machines should be setup using its own set of guidelines to ensure that the
+attack surface between VM's or a VM and the host is minimized.
+
+\section {General Guidelines and Considerations}
+
+Following the general guidelines for best practices when setting up a Linux server should be the first step when
+preparing a machine to host guest VM's using KVM. However, there are some extra things to consider since the code on
+the guest should not be trusted, especially in a cloud environment. Most of these considerations are centered around
+the additional devices which may be used with a VM and IO access from the guest to the external network. KVM allows for
+the guest's CPU instructions to be sent directly to the processor, if hardware virtualization is supported. This
+drastically reduces the attack surface and allows us to focus on the components enabling communication between a guest
+and any external device or network. We can use the guidelines outlined by Red Hat, Inc. as a good starting place for
+determining the most secure system configuration~\cite{redhatcustomerservice}.
+
+\subsection{The KVM Hypervisor}
+
+Virtualization today relies heavily on KVM in the linux kernel. Most cloud providers will use this software in order
+to create and manage virtual machines, although they may use proprietary software to manage the frontend of the
+virtualization. If the CPU has hardware virtualization enabled, then KVM uses hardware virtualization to accomplish
+the virtualization of an operating system. This has the benefit of separating the entire guest OS from the host OS
+without the performance drawbacks of software virtualization. However, it is important to note that even with
+harware acceleration KVM is less performant than linux containers, as shown by Chae, Lee, and Lee~\cite{ChaeMinSu2017Apco}.
+Therefore, a KVM-based environment should be chosen for the security benefits whenever the performance drawback is
+acceptable.
+
+On a machine hosting VM's, special attention must be paid to the IO operations allowed by the guest machines since this
+is the only part of the VM which must be processed by the host OS. Default settings may be acceptable depending on the
+virtual machine monitor used but should still be verified by the administrator.
+
+\subsection {Comparision to container-based Environments}
+
+Use of a virtual machines for a shared-tenant environment like a public cloud is preferable to a container-based
+environment. Albakri, Shanmugam, Samy, Idris, and Ahmed outline several risk assesment considerations for an
+organization looking to move assets to a public cloud. They found that the responsibility for security in a cloud
+computing environment is shifted to a the cloud provider in a public cloud, and an organization looking to shift
+resources to this environment should take this into consideration when evaluating security risks~\cite{AlbakriSameerHasan2014Sraf}.
+Due to this, a cloud provider looking to sell its resources should ensure that all possible risks of attacks between
+VM's have been mitigated.
+
+\subsection {Overview of issues}
+
+\begin{center}
+    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+        \hline
+        Issue & Attack Type & Affected Components \\ [0.5ex]
+        \hline\hline
+        Insecure storage devices & Privilege escalation & File System \\
+        \hline
+        Unused external devices & Arbitrary code execution & Device drivers \\
+        \hline
+        Untrusted VM Images & InfoLeak, RCE & Network \\
+        \hline
+        Non-isolated guest networking & Infoleak & Networking \\ [0.5ex]
+        \hline
+    \end{tabular}
+\end{center}
+
+
+\section{Securing Storage Devices}
+
+\subsection {Physical Storage Devices}
+A guest VM with access to an entire storage device may be able to attack the host or other guests by rewriting volume
+labels on the device. Unless the system requirements dictate that a guest should access an entire physical device, this
+should be disallowed. There are a large number of possible file system types allowed with KVM, but the only one that
+could cause issues on the host itself is access to an entire disk. If access to a physical drive is required, we should
+ensure that it is done through a partition instead of the device. Additionally, we should make sure that the host
+machine does not use file system labels to identify the file systems in the fstab file.
+
+\subsection {Network Storage Devices}
+
+Although a performance hit may be incurred, a storage device using the network may be a more sustainable and secure
+solution if possible. This would allow for easier storage backups and failure tolerance. An extra consideration from
+this perspective is to ensure that the data is encrypted while transferred and at rest and the encryption keys are
+properly stored.
+
+\subsection{Mitigation}
+
+Under most circumstances, it is better to grant a guest access to a partition instead of an entire device. A partition
+can be resized or moved as needed, something not possible with a single drive. Additionally, the storage device can be
+shared between many guests and partitions will be cleared and reused as needed.
+
+We can easily determine from the host whether the guest has an entire storage device or a partition. The fix for this
+is to simply move the guest's data into a partition on the same disk.
+
+\section{Disable Access to Physical Devices}
+
+A similar issue to granting a guest an entire storage device is granting a guest access to any necessary hardware such
+as USB devices. Depending on system requirements this may be necessary for a special system, but this would still
+increase the attack surface significantly and should be avoided.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=1\textwidth]{./fig/KVM IO.drawio.png}
+    \end{center}
+    \caption{Device driver code required for external devices contributes significantly to the attack surface of a hypervisor.}
+    \label{fig5}
+\end{figure}
+
+\subsection{Mitigation Approaches}
+
+In a public cloud, there is no need to enable any external devices unless it is a business requirement. The vast
+majority of cloud computing will only require access to block storage and the network. There exist entire virtual
+machine monitors built around the concept of stripping the VMM down to only what is necessary for cloud computing,
+whether is it in the form of short-lived server less functions, containers, or entire virtual machines which may run
+for long periods of time. Firecracker, developed by Amazon for AWS Lambda, is probably the most relevant example of
+this today. This VMM replaces QEMU and reduces the attack surface significantly by omitting any device drivers for
+external devices.
+
+\section{Use Secured VM Images}
+
+\subsection{Image Storage}
+VM images should be stored in a single, secure location. The images should not be accessible by any users other than the
+ones who must read or modify them. Following the principle of least privilege is the best choice here since VM images
+are a prime target from malicious code. Although VM images are a prime target, it is not any more complex to secure
+these files than any other. As long as it is not publicly readable or writable and the relevant app armor profiles are
+set up, the images can be considered secured. We can check this along with the other file permission checks.
+
+The main concern with VM images is that the images are stored in alternate locations which may not have the same
+security precautions as the default location. A cautious sysadmin will ensure that this does not happen, but the concern
+is that a rogue user stores a malicious VM somewhere else on the system and creates a guest which may infect the host.
+Properly following the rules of least privilege can prevent this from happening, and auditing the users as well as the
+app armor profiles for relevant programs can stop users from attacking the system this way.
+
+\subsection{Hardened VM Images}
+
+Another easier solution than modifying an existing system would be to start from an OS image which is pre-configured to
+be compliant with a certain standard. This may be the most efficient solution since the system administrator will not
+need to modify the system in any way. However, we should consider that this will not be possible when working with an
+existing system, and there may not be an image provided which meets the requirements for an organization. Therefore, a
+general-purpose tool which can be used on any system to detect misconfiguration and fix trivial issues would be useful.
+
+\section{Set Up libvirt Audits}
+
+Detailed log files are essential to investigating errors which occur on production systems, but can also be helpful when
+investigating security issues. As recommended by RedHat, usage of auvirt can help by recording all events that happen
+during operation. In public cloud environments, this should be combined with logging of events relating to the user's
+use of the system configuration. For example, any changes to networking should be logged, which could then be used to
+analyze the VM's events to identify anomalies.
+
+\section{Disable Networking Between Host and Guest VMs}
+
+A guest VM should function as if it was an independent system, especially if the VM is in a public cloud. Unless the
+requirements state that the VM guests should be able to communicate, there should be no network communication allowed
+between the guests.
+
+\section{VM Guest Security Considerations}
+
+As with a KVM host, all procedures to secure a bare metal machine should be followed when configuration a guest VM.
+Under most circumstances a guest will not function differently in a virtualized environment compared to a bare metal
+one, so we should take care to set it up the same way.
+
+\subsection{Differences Between VM and Bare Metal}
+
+Any remote control of a machine should be done over encrypted channels only. A guest VM can only be accessed via remote
+methods, unlike a bare metal host which can be accessed directly with a physical terminal. Similar to the configuration
+of the host system, we can detect the method through which the user has connected to the guest and determine whether it
+was secure. If the method was insecure, we must alert the user and give them the required steps to take to disable the
+method and enable SSH.
+
+\subsection{Storage Encryption}
+
+Although a virtual machine's OS is separated from the host, the physical storage is still on the same drives as shared
+by the hosts and other guest machines. To prevent sensitive data from leaking accidentally or maliciously, the guest's
+data should be encrypted in a way which only that guest VM can read the data. Of course, an attacker with root access
+on a machine would be able to read encrypted data on a physical disk since the key is stored on the host. However, if
+this storage is in a separate location, such as a network drive, the data would be secure from any third party attacks
+such as man-in-the-middle snooping.
+
+When analyzing the storage configuration of the guest, we can determine whether the storage attached to the guest has
+encryption set up. If not, we can automatically add an encryption format and generate a key for the user to then store
+in a secure location.
