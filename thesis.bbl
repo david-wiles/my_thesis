@@ -66,4 +66,14 @@ Docker, Inc. (2022).
 \newblock Protect the Docker daemon socket
 \newblock {\em Docker, Inc.\/}.
 
+\bibitem[\protect\citeauthoryear{Docker, Inc.}{Docker, Inc.}{2022}]{docker_bench_security}
+Docker, Inc. (2022).
+\newblock The Docker Bench for Security
+\newblock {\em Docker, Inc.\/}.
+
+\bibitem[\protect\citeauthoryear{M.~Cooney}{M. Cooney}{2021}]{MichaelCooney2021Lfni}
+M.~Cooney (2021).
+\newblock Log4j flaw needs immediate remediation: Exploits of the Log4j vulnerability can lead to loss of data on server systems and denial-of-service attacks.
+\newblock {\em Network World Inc.\/}.
+
 \end{thebibliography}

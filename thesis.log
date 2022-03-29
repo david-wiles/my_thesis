@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.1) (preloaded format=pdflatex 2022.3.26)  26 MAR 2022 22:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.1) (preloaded format=pdflatex 2022.3.26)  28 MAR 2022 21:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -828,28 +828,28 @@ Chapter 1.
 [1
 
 
-] [2]) [3]
+] [2] [3]) [4]
 \openout2 = `./chapters/chapter2.aux'.
 
  (chapters/chapter2.tex
 Chapter 2.
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 7.
+(hyperref)                than one, level fixed on input line 6.
 
-[4
-
-
+[5
 
 
-]
-<./fig/Canary Flowchart.drawio.png, id=461, 362.35374pt x 422.57875pt>
+
+
+] [6]
+<./fig/Canary Flowchart.drawio.png, id=481, 362.35374pt x 422.57875pt>
 File: ./fig/Canary Flowchart.drawio.png Graphic file (type png)
 <use ./fig/Canary Flowchart.drawio.png>
 Package pdftex.def Info: ./fig/Canary Flowchart.drawio.png  used on input line 
-43.
+50.
 (pdftex.def)             Requested size: 216.81pt x 252.84636pt.
- [5]) [6
+) [7
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2.1}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
@@ -871,13 +871,13 @@ Underfull \hbox (badness 10000) in paragraph at lines 15--15
 []\T1/ptm/m/n/12 InfoLeak, Man-In-The-
  []
 
-[7
+[8
 
 
 
 
 ]
-<./fig/Updating software.drawio.png, id=479, 392.46625pt x 272.01625pt>
+<./fig/Updating software.drawio.png, id=494, 392.46625pt x 272.01625pt>
 File: ./fig/Updating software.drawio.png Graphic file (type png)
 <use ./fig/Updating software.drawio.png>
 Package pdftex.def Info: ./fig/Updating software.drawio.png  used on input line
@@ -887,62 +887,171 @@ Package pdftex.def Info: ./fig/Updating software.drawio.png  used on input line
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[8] [9
+
+Package xcolor Warning: Incompatible color definition on input line 59.
+
+
+Package xcolor Warning: Incompatible color definition on input line 59.
+
+
+Package xcolor Warning: Incompatible color definition on input line 59.
+
+
+Package xcolor Warning: Incompatible color definition on input line 60.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 60.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 60.
+
+Package xcolor Warning: Incompatible color definition on input line 61.
+
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 6
+1.
+(C:\Users\dwile\AppData\Roaming\MiKTeX\tex/latex/psnfss\ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+) [9]
+
+Package xcolor Warning: Incompatible color definition on input line 66.
+
+
+Package xcolor Warning: Incompatible color definition on input line 66.
+
+
+Package xcolor Warning: Incompatible color definition on input line 66.
+
+
+Package xcolor Warning: Incompatible color definition on input line 67.
+
+[10
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3.1}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.74 
-      <./fig/Updating software.drawio.png>] [10] [11] [12]) [13]
+l.82 
+      <./fig/Updating software.drawio.png>]
+
+Package xcolor Warning: Incompatible color definition on input line 85.
+
+
+Package xcolor Warning: Incompatible color definition on input line 85.
+
+
+Package xcolor Warning: Incompatible color definition on input line 85.
+
+
+Package xcolor Warning: Incompatible color definition on input line 86.
+
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 86
+.
+(C:\Users\dwile\AppData\Roaming\MiKTeX\tex/latex/psnfss\t1pcr.fd
+File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
+)
+LaTeX Font Info:    Trying to load font information for TS1+pcr on input line 8
+6.
+
+(C:\Users\dwile\AppData\Roaming\MiKTeX\tex/latex/psnfss\ts1pcr.fd
+File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
+)
+
+Package xcolor Warning: Incompatible color definition on input line 92.
+
+
+Package xcolor Warning: Incompatible color definition on input line 92.
+
+
+Package xcolor Warning: Incompatible color definition on input line 92.
+
+
+Package xcolor Warning: Incompatible color definition on input line 93.
+
+
+Package xcolor Warning: Incompatible color definition on input line 94.
+
+[11]
+
+! Package keyval Error: langugage undefined.
+
+See the keyval package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.117 ...n{lstlisting}[style=AMMA, langugage=bash]
+                                                  
+? 
+
+Package xcolor Warning: Incompatible color definition on input line 117.
+
+
+Package xcolor Warning: Incompatible color definition on input line 117.
+
+
+Package xcolor Warning: Incompatible color definition on input line 117.
+
+
+Package xcolor Warning: Incompatible color definition on input line 118.
+
+
+Package xcolor Warning: Incompatible color definition on input line 119.
+
+
+Package xcolor Warning: Incompatible color definition on input line 120.
+
+
+Package xcolor Warning: Incompatible color definition on input line 121.
+
+
+Package xcolor Warning: Incompatible color definition on input line 122.
+
+[12] [13] [14]) [15] [16]
 \openout2 = `./chapters/chapter4.aux'.
 
-
-(chapters/chapter4.tex
+ (chapters/chapter4.tex
 Chapter 4.
-[14
+[17
 
 
 
 
 ]
-<./fig/Docker application nesting.drawio.png, id=526, 211.79124pt x 251.94125pt
+<./fig/Docker application nesting.drawio.png, id=566, 211.79124pt x 251.94125pt
 >
 File: ./fig/Docker application nesting.drawio.png Graphic file (type png)
 <use ./fig/Docker application nesting.drawio.png>
 Package pdftex.def Info: ./fig/Docker application nesting.drawio.png  used on i
 nput line 33.
 (pdftex.def)             Requested size: 216.81pt x 257.92236pt.
- [15
+ [18
 pdfTeX warning (ext4): destination with the same identifier (name{figure.4.1}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.39 \subsection{Deployment Considerations}
                                             <./fig/Docker application nesting.d
-rawio.png>] [16]
+rawio.png>] [19]
 Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []\T1/ptm/m/n/12 AppArmor pro-files and
  []
 
-<./fig/Docker Socket.drawio.png, id=537, 623.32875pt x 352.31625pt>
+<./fig/Docker Socket.drawio.png, id=578, 623.32875pt x 352.31625pt>
 File: ./fig/Docker Socket.drawio.png Graphic file (type png)
 <use ./fig/Docker Socket.drawio.png>
 Package pdftex.def Info: ./fig/Docker Socket.drawio.png  used on input line 98.
 
 (pdftex.def)             Requested size: 433.62001pt x 245.09293pt.
-[17]
+[20]
 
-Package natbib Warning: Citation `docker_docs_tls_verify' on page 18 undefined 
+Package natbib Warning: Citation `docker_docs_tls_verify' on page 21 undefined 
 on input line 110.
 
-[18
+[21
 pdfTeX warning (ext4): destination with the same identifier (name{figure.4.2}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.117 \subsection{File System Size Constraints}
                                                 <./fig/Docker Socket.drawio.png
->] [19] [20]) [21]
+>] [22] [23]) [24]
 \openout2 = `./chapters/chapter5.aux'.
 
  (chapters/chapter5.tex
@@ -953,7 +1062,7 @@ Overfull \hbox (2.77051pt too wide) in paragraph at lines 19--27
 -nel. Most cloud providers
  []
 
-[22
+[25
 
 
 
@@ -963,8 +1072,8 @@ Underfull \hbox (badness 10000) in paragraph at lines 55--55
 []\T1/ptm/m/n/12 Non-isolated guest net-
  []
 
-[23] [24]
-<./fig/KVM IO.drawio.png, id=589, 422.57875pt x 372.39125pt>
+[26] [27]
+<./fig/KVM IO.drawio.png, id=629, 422.57875pt x 372.39125pt>
 File: ./fig/KVM IO.drawio.png Graphic file (type png)
 <use ./fig/KVM IO.drawio.png>
 Package pdftex.def Info: ./fig/KVM IO.drawio.png  used on input line 95.
@@ -973,28 +1082,28 @@ Package pdftex.def Info: ./fig/KVM IO.drawio.png  used on input line 95.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[25] [26
+[28] [29
 pdfTeX warning (ext4): destination with the same identifier (name{figure.5.1}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.119 
-       <./fig/KVM IO.drawio.png>] [27] [28]) [29]
+       <./fig/KVM IO.drawio.png>] [30] [31]) [32]
 \openout2 = `./chapters/chapter6.aux'.
 
  (chapters/chapter6.tex
 Chapter 6.
-) [30
+) [33
 
 
 
 
-] [31] (thesis.bbl [32
+] [34] (thesis.bbl [35
 
 
 
 
-]) [33
+] [36]) [37
 
 
 
@@ -1023,16 +1132,6 @@ Package xcolor Warning: Incompatible color definition on input line 4.
 
 
 Package xcolor Warning: Incompatible color definition on input line 4.
-
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 4.
-
-(C:\Users\dwile\AppData\Roaming\MiKTeX\tex/latex/psnfss\t1pcr.fd
-File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
-)
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 4.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 4.
 
 
 Package xcolor Warning: Incompatible color definition on input line 5.
@@ -2451,7 +2550,7 @@ Package xcolor Warning: Incompatible color definition on input line 63.
 
 Package xcolor Warning: Incompatible color definition on input line 63.
 
-[34
+[38
 
 ]
 
@@ -2582,11 +2681,6 @@ Package xcolor Warning: Incompatible color definition on input line 78.
 
 Package xcolor Warning: Incompatible color definition on input line 79.
 
-LaTeX Font Info:    Trying to load font information for TS1+pcr on input line 7
-9.
-(C:\Users\dwile\AppData\Roaming\MiKTeX\tex/latex/psnfss\ts1pcr.fd
-File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
-)
 
 Package xcolor Warning: Incompatible color definition on input line 80.
 
@@ -2638,11 +2732,6 @@ Package xcolor Warning: Incompatible color definition on input line 94.
 
 Package xcolor Warning: Incompatible color definition on input line 94.
 
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 9
-4.
-(C:\Users\dwile\AppData\Roaming\MiKTeX\tex/latex/psnfss\ts1ptm.fd
-File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-)
 
 Package xcolor Warning: Incompatible color definition on input line 94.
 
@@ -2835,7 +2924,7 @@ Package xcolor Warning: Incompatible color definition on input line 129.
 
 Package xcolor Warning: Incompatible color definition on input line 130.
 
-[35]
+[39]
 
 Package xcolor Warning: Incompatible color definition on input line 131.
 
@@ -4063,7 +4152,7 @@ Package xcolor Warning: Incompatible color definition on input line 199.
 
 Package xcolor Warning: Incompatible color definition on input line 200.
 
-[36]
+[40]
 
 Package xcolor Warning: Incompatible color definition on input line 201.
 
@@ -4913,7 +5002,7 @@ Package xcolor Warning: Incompatible color definition on input line 267.
 
 Package xcolor Warning: Incompatible color definition on input line 267.
 
-[37]
+[41]
 
 Package xcolor Warning: Incompatible color definition on input line 268.
 
@@ -5574,7 +5663,7 @@ Package xcolor Warning: Incompatible color definition on input line 337.
 
 Package xcolor Warning: Incompatible color definition on input line 337.
 
-[38]
+[42]
 
 Package xcolor Warning: Incompatible color definition on input line 339.
 
@@ -6802,7 +6891,7 @@ Package xcolor Warning: Incompatible color definition on input line 405.
 
 Package xcolor Warning: Incompatible color definition on input line 405.
 
-[39]
+[43]
 
 Package xcolor Warning: Incompatible color definition on input line 406.
 
@@ -7793,7 +7882,7 @@ Package xcolor Warning: Incompatible color definition on input line 470.
 
 Package xcolor Warning: Incompatible color definition on input line 471.
 
-[40]
+[44]
 
 Package xcolor Warning: Incompatible color definition on input line 472.
 
@@ -8364,7 +8453,7 @@ Package xcolor Warning: Incompatible color definition on input line 529.
 
 Package xcolor Warning: Incompatible color definition on input line 531.
 
-[41]
+[45]
 Appendix B.
 (C:\Program Files\MiKTeX\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
@@ -8552,7 +8641,7 @@ Package xcolor Warning: Incompatible color definition on input line 561.
 
 Package xcolor Warning: Incompatible color definition on input line 563.
 
-[42
+[46
 
 ]
 Appendix C.
@@ -8745,7 +8834,7 @@ Package xcolor Warning: Incompatible color definition on input line 622.
 
 Package xcolor Warning: Incompatible color definition on input line 623.
 
-[43
+[47
 
 ]
 
@@ -9573,7 +9662,7 @@ Package xcolor Warning: Incompatible color definition on input line 691.
 
 Package xcolor Warning: Incompatible color definition on input line 692.
 
-[44]
+[48]
 
 Package xcolor Warning: Incompatible color definition on input line 694.
 
@@ -9767,20 +9856,20 @@ Package xcolor Warning: Incompatible color definition on input line 728.
 
 Package natbib Warning: There were undefined citations.
 
-[45] (thesis.aux (chapters/chapter1.aux) (chapters/chapter2.aux)
+[49] (thesis.aux (chapters/chapter1.aux) (chapters/chapter2.aux)
 (chapters/chapter3.aux) (chapters/chapter4.aux) (chapters/chapter5.aux)
 (chapters/chapter6.aux))
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 40497A53D5AD1E7418CB362ACC7A78D8;13183.
+(rerunfilecheck)             Checksum: E645AE7FB3786F607D7119AE5817609A;13348.
  ) 
 Here is how much of TeX's memory you used:
- 19692 strings out of 478584
- 330076 string characters out of 2854216
- 1287990 words of memory out of 3000000
- 36614 multiletter control sequences out of 15000+600000
+ 19951 strings out of 478584
+ 333264 string characters out of 2854216
+ 1288107 words of memory out of 3000000
+ 36850 multiletter control sequences out of 15000+600000
  515347 words of font info for 104 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 83i,12n,91p,480b,2301s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 83i,12n,91p,481b,2303s stack positions out of 5000i,500n,10000p,200000b,80000s
  <C:\Users\dwile\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
 0800.pk> <C:\Users\dwile\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
 0\tctt0800.pk>{C:/Program Files/MiKTeX/fonts/enc/dvips/base/8r.enc}<C:/Program 
@@ -9789,9 +9878,9 @@ Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX
 /urw/courier/ucrr8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmb8a.p
 fb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files/
 MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on thesis.pdf (58 pages, 422557 bytes).
+Output written on thesis.pdf (62 pages, 434371 bytes).
 PDF statistics:
- 1585 PDF objects out of 1728 (max. 8388607)
- 850 named destinations out of 1000 (max. 500000)
- 610 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1635 PDF objects out of 1728 (max. 8388607)
+ 873 named destinations out of 1000 (max. 500000)
+ 618 words of extra memory for PDF output out of 10000 (max. 10000000)
 

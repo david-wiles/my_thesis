@@ -54,6 +54,22 @@ but there is always the possibility of incompatible versions of packages or soft
 and will take longer to complete. This may be the most common reason for not upgrading packages once available but leaves
 a system vulnerable to attacks.
 
+If the system is Debian-based, one can run:
+
+\begin{lstlisting}[style=AMMA, language=bash]
+apt update
+apt list --upgradable
+\end{lstlisting}
+
+To update repository lists and determine which packages have updates available. Then, running
+
+\begin{lstlisting}[style=AMMA, language=bash]
+apt upgrade -y
+\end{lstlisting}
+
+Will automatically upgrade all available packages. Of course, this should be done with care because there is no gurarantee
+that the new packages will not contain breaking changes.
+
 \section{Remote control}
 
 \subsection{User Access}
@@ -63,6 +79,22 @@ connection to the machine. This connection should be encrypted and secured by cr
 A basic SSH connection will satisfy these requirements, so alternatives must be avoided even if the communication is
 over a private network. We can check whether the current user has logged in via ssh by using 'who am i'. Additionally,
 we will want to check the configuration file to ensure that SSH is set up to disallow passwords.
+
+We can check if the current user is logged in via ssh by using:
+
+\begin{lstlisting}[style=AMMA, language=bash]
+ps aux | grep "sshd: $(whoami)@$(who am i | awk '{print $2}')" | wc -l
+\end{lstlisting}
+
+Which will print a '1' if the current session is using ssh. We can then check whether the ssh configuration is secure
+by using
+
+\begin{lstlisting}[style=AMMA, language=bash]
+cat /etc/ssh/sshd_config | grep "^PasswordAuthentication"
+cat /etc/ssh/sshd_config | grep "^PermitRootLogin"
+\end{lstlisting}
+
+We for both, we should either have no result or the setting is set to 'no', such as 'PasswordAuthentication no".
 
 \subsection{Encrypted Communications}
 
@@ -77,6 +109,21 @@ machine and use SSH instead. Today, the main way to access a remote machine is v
 machine should have the ability to host an SSH server daemon. However, it may be necessary for the host to use some
 remote GUI system, in which case we should ensure that the communications are over a secure channel such as HTTPS and the
 authentication meets a standard set by the organization.
+
+Checking whether communications are done over HTTPS should be done at the application-level instead of at the OS level.
+However, if we wish to do so, it is possible to set up firewalls using iptables to block all outbound traffic that is
+not HTTPS or SSH. If we wish to do so, we can set this with
+
+\begin{lstlisting}[style=AMMA, langugage=bash]
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -t filter -p tcp --dport https -j ACCEPT
+iptables -A OUTPUT -t filter -p udp --dport https -j ACCEPT
+\end{lstlisting}
+
+However this will certainly break many applications using the network, which is why it is best to ensure secure communication
+at the application level.
 
 \subsection{Remediation}
 To ensure that ssh is enabled and enforced on a system, the following steps should be taken:

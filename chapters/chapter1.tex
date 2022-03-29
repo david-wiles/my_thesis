@@ -5,7 +5,7 @@
 \subsection{Public Cloud and the Linux Kernel}
 A quick glance at the offerings provided by Amazon Web Services shows that web hosting in 2022 is heavily based around
 virtualization.  Virtual machines are cheaper for the provider and customer, more efficient, and easier to work with.
-A new, identical virtual machine can be created programmatically using tools provided by Amazon. Additionally, after
+Entire fleets of cloud services can be created programmatically using tools such as Terraform or Chef. Additionally, after
 the introduction of Docker in 2013 containers have quickly become the preferred way to test and deploy code due to their ease
 of use.  Since there may be software from many different customers running on a single CPU concurrently, we may assume
 that this would be a major security issue.
@@ -22,7 +22,8 @@ Compliance scanners exist which detect configuration issues as defined by a stan
 defining standards for system configurations. These standards may be required for certain organizations or governments
 to ensure security, but can also provide a good starting point for a business or organization which does not have this
 compliance regulated. OpenShift, a platform provided by Red Hat, does include a compliance scanner with the service.
-This scanner will determine whether the system configuration meets the standards.
+This scanner will determine whether the system configuration meets the standards. Similarly, Docker, Inc. maintains
+a project on GitHub which will automatically scan a Docker setup for any issues~\cite{docker_bench_security}.
 
 These scanners can be combined with dynamic binary analyzers to determine if a program has been infected at runtime,
 such as through a specially crafted input to a library such as log4j. Choi, Park, Eom, and Chung detail a system which
@@ -35,16 +36,33 @@ configuration.
 In general, an attacker may wish to achieve one of three goals when compromising a system. These goals are gaining
 control of the system, reading sensitive data, or denying access to the system. Proper configuration of the system is
 critical to preventing the attacker form achieving these goals, even if they are able to exploit one part of the system.
-Gaining control of a system is the most critical issue for a server machine. This could be achieved by exploiting bugs
-in programs leading to arbitrary code execution, but is probably more commonly caused by improperly hidden passwords.
-A rogue user on a system can cause damage even if they don't have root access.
 
 \subsection {InfoLeak}
 A related issue to improperly stored or hidden passwords is improperly secured sensitive data. Any data generated or
 stored by a server should be considered sensitive, since an attacker could infer a considerable amount from log files
-or other seemingly innocuous files. Additionally, hardware issues such as timing attacks can also lead to an attacker
-gaining knowledge of a system without leaving the data itself exposed.
+or other seemingly innocuous files. A careless setting on these log files could expose customer information or
+company secrets to an attacker, even if the attacker doesn't have root access on the machine.
+
+Additionally, hardware issues such as timing attacks can also lead to an attacker gaining knowledge of a system. These
+attacks are generally harder to achieve since the attack would need to involve multiple components, but can still be
+mitigated by configuring the resources available to each VM or container
 
 \subsection {Denial of Service}
 Denial of service is likely the most common attack on cloud systems today. This may come in the form of ransomware,
-general degradation of service, or even a distributed denial of service attack.
+general degradation of service, or a distributed denial of service attack. The most well-known denial-of-service attack
+comes in the form of a network attack, where a server is flooded with requests to the point that service is degraded or
+unavailable for actual users. While this kind of attack can be mitigated through a variety of methods, they aren't
+relevant for this paper and so will not be discussed.
+
+Other forms of denial of service attacks can come from malicious guests on a host. Consider a public cloud environment
+which allows users full access to a guest VM. The malicious actor could attempt to gain control of a number of VM's on
+a single machine and overuse the host's resources to degrade performance of the other guests, especially if another
+guest is the target. This technique is also used in side-channel attacks, mentioned previously under infoleak.
+
+\subsection{Privilege Escalation}
+Privilege escalation is the act of gaining more permissions than intended on a system. Gaining control of a system is
+on of the most critical issues for a server machine since it could lead to any number of attacks. A malicous actor could
+gain control through a number of ways, but the most well-known is through remote code execution. A bug in a program,
+such as the recently discovered log4j vulnerability, can allow the attacker to execute an arbitrary code sequence
+through a carefully-crafted input~\cite{MichaelCooney2021Lfni}. Once the attacker has this capability, they could
+easily start a reverse shell with root permissions and steal information or demand a ransom to unencrypt data.
