@@ -76,4 +76,9 @@ M.~Cooney (2021).
 \newblock Log4j flaw needs immediate remediation: Exploits of the Log4j vulnerability can lead to loss of data on server systems and denial-of-service attacks.
 \newblock {\em Network World Inc.\/}.
 
+\bibitem[\protect\citeauthoryear{C.~Tozzi}{C.~Tozzi}{2017}]{why_docker}
+C.~Tozzi (2017)
+\newblock Understanding Why Docker is So Popular.
+\newblock {\em Container Journall.\/}.
+
 \end{thebibliography}

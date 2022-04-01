@@ -14,11 +14,11 @@ we also see its use in production systems, which will be the focus of this discu
 in the Linux kernel to ensure that the processes are separated from others on the same machine, but does not use any
 hardware features in the CPU like KVM or other hypervisor would be able to take advantage of.
 
-Kubernetes (K8s) is a very prominent software used to orchestrate hundreds or even thousands of containers across
+Kubernetes is a very prominent software used to orchestrate hundreds or even thousands of containers across
 multiple machines for load balancing and availability purposes. This paper however will focus on simple configuration
 practices and will not discuss K8s, although it is worthy of mention due to its widespread use.
 
-\subsection{Performance and Linux Namespaces}
+\subsection{Performance Compared to Virtualization}
 
 Docker and other container engines are able to achieve lower performance overhead compared to virtual machines by only
 containing the necessary libraries and packages for its use and depending on the host's kernel for the traditional work of
@@ -36,15 +36,20 @@ provides the basis for containers themselves and are critical to the security of
     \label{fig3}
 \end{figure}
 
+Newer CPU technologies like Intel's VT-x help close this gap between virtualization and containers, but running a full
+OS within another OS will certainly have overhead cost compared to a native process.
+
 \subsection{Deployment Considerations}
 
 Docker has become the de-facto containerization solution since its inception and can be credited with the shift of
-containerization from virtualization. The tools provided by Docker make it very easy to create new containers, share
-images, and reproduce the systems used by others. Additionally, container orchestration technologies such as Kubernetes
-has made shifting a production system to containers instead of VM's more attractive. These tools often choose sane
-defaults for security, but there can still be gaps in this setup. These issues are compounded by the fact that it is
-possible to override these defaults for the sake of ease of setup, which can creep into production systems when settings
-from development environments are evaluated when copied over.
+containerization from virtualization~\cite{why_docker}. The tools provided by Docker make it very easy to create new containers, share
+images, and reproduce the systems used by others. Additionally, container orchestration technologies such as K8s
+has made adopting microservices much more attactive due to its built-in scaling and balancing.
+
+These tools often choose sane defaults for security, but there can still be gaps in this setup. These issues are
+compounded by the fact that many developers may overwrite these defaults to make it easier to test. The same developer
+may forget to go back and configure the system correctly and may not even know why the setting was there. Any organization
+with an experienced engineer would catch this, but there are no guarantees. In this way, issues may creep into production systems.
 
 When evaluating the security settings of a system using Docker, we must take note of where the system will be deployed
 and its intended uses. Many developers will use Docker on their development system since it is easy to replicate a
@@ -52,7 +57,7 @@ production environment locally, but this type of deployment does not necessarily
 levels unless the system is being tested specifically for vulnerabilities. A production system hand should have the most
 restrictive settings possible and should be thoroughly evaluated for gaps in security.
 
-\subsection{Similar Software}
+\subsection{Relation to Container Software}
 
 The security considerations taken by Docker to separate containers from each other as well as their host can be used as
 a good starting point for other containerization systems. Docker may be the most popular system, but there are countless
@@ -75,7 +80,6 @@ properly set.
         \hline
     \end{tabular}
 \end{center}
-
 
 \section{Securing the Docker Socket}
 
@@ -101,6 +105,16 @@ warning them of this issue.
     \label{fig4}
 \end{figure}
 
+We can check whether the current user has access to the docker socket by simply running
+
+\begin{lstlisting}[style=AMMA, language=bash]
+docker ps
+\end{lstlisting}
+
+Docker must be run with root, so having access to the docker socket is similar to having root access on the machine.
+Most users should not be able to access docker on production instances besides engineers responsible for running the
+system.
+
 \subsection{Docker socket protection}
 
 If the Docker socket is exposed to the network, then the configuration issue can be considered a network issue, but if
@@ -109,20 +123,74 @@ exposed to the network it may be accessed by any machine which knows the port an
 tlsverify should be required by the docker socket and certificates should be generated and only distributed to trusted
 systems or users. These steps are outlined in Docker's own documentation~\cite{docker_docs_tls_verify}.
 
+We can check if the docker socket is exposed over the network with
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo ps aux | grep -E 'dockerd.*?-H.*?tcp://' | wc -l
+\end{lstlisting}
+
+This checks the currently running dockerd process to see if it was started with a tcp host. If so, then the output will
+be greater than one. If we have started the daemon listening over tcp, we also want to verify tls certificates. This
+can be checked by running a similar command:
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo ps aux | grep -E 'dockerd.*?--tlsverify | wc -l
+\end{lstlisting}
+
+This vulnerability can be fixed by generating tls certificates and specifying their path in the command line arguments
+for docker. These instructions are taken from Docker's own documentation.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+openssl genrsa -aes256 -out ca-key.pem 4096
+openssl req -new -x509 -days 365 -key ca-key.pem -sha256 -out ca.pem
+openssl genrsa -out key.pem 4096
+openssl req -subj "/CN=$HOST" -sha256 -new -key server-key.pem -out server.csr
+echo subjectAltName = DNS:$HOST,IP:10.10.10.20,IP:127.0.0.1 >> extfile.cnf
+openssl x509 -req -days 365 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem -extfile extfile.cnf
+openssl genrsa -out key.pem 4096
+openssl req -subj '/CN=client' -new -key key.pem -out client.csr
+echo extendedKeyUsage = clientAuth > extfile-client.cnf
+openssl x509 -req -days 365 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile extfile-client.cnf
+rm -v client.csr server.csr extfile.cnf extfile-client.cnf
+chmod -v 0400 ca-key.pem key.pem server-key.pem
+chmod -v 0444 ca.pem server-cert.pem cert.pem
+dockerd -H tcp://0.0.0.0:2376 --tlsverify --tlsacert=ca.pem --tlscert=server-cert.pem --tlskey=server-key.pem
+\end{lstlisting}
+
+The client certificates should be distributed to trusted machines and proper access control settings should be enforced
+to protect them. The daemon should not be exposed over tcp without these parameters, even if it is on a private network.
+
 \section{Securing Docker Volumes}
 
-Docker volume misconfiguration pose a threat to a system two ways. This could lead to a denial-of-service or info leak
-attack.
+Docker volume misconfiguration can pose a threat to a system two ways and could lead to denial-of-service or info leak
+attacks.
 
 \subsection{File System Size Constraints}
 
 The first is through lack of size constraints. A ontainer using a volume without size constraints could fill up the
-entire filesystem with data, preventing other users from writing data and potentially crippling the IO performance of the machine.
+entire filesystem with data, preventing other users from writing data and potentially crippling the IO performance of
+the machine.
+
+Docker container by default have an associated volume with a 10Gb size limit. However, standalone volumes will not have
+a default limit and so should be configured as needed. To check if a specific volume has a size limit set, use
+
+\being{lstlisting}[style=AMMA, language=bash]
+sudo docker volume inspect [volume] -f '{{ .Options }}' | grep size | wc -l
+\end{lstlisting}
+
+Depending on which storage driver the volume uses, we may not be able to limit its size, so new volumes and container
+should use storage drivers which support this feature.
 
 \subsection{Shared Files}
 The second way a volume could pose a threat is through shared files. A Docker volume could also be shared between the
 host or other containers. Should the shared volume be mounted at a point which contains sensitive files in the subtree,
 then these files would be visible to the other container and could potentially leak data to a malicious actor.
+
+Any threats exposed this way can be scanned in the same way that they can be scanned on the native filesystem. They can
+also be fixed in the same way, which is updating the permissions on the file or reducing that user's permissions.
+
+One docker-specific consideration is the mount location. Any sensitive files on the volume should be kept separate unless
+the files need to be read by other containers or the host.
 
 \subsection{Volume issue remediation}
 One solution for both problems is to designate a separate partition for the Docker volumes to reside. This will ensure
@@ -137,7 +205,7 @@ Containers are more susceptible to issues since the OS is not fully virtualized 
 Using Linux's security namespaces is absolutely necessary to ensure that the containers are not able to access the full
 resources of the host. Taking a look at how Docker handles this shows a good default setup.
 
-\subsection {Docker and Linux Namespaces}
+\subsection {Default Protections}
 
 A container is not a jailed process, but has extra security to ensure that this process is separated from the rest of the
 host's processes. Linux namespaces allow separation of resources for a well-defined set of processes, which is a

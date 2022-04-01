@@ -162,6 +162,8 @@ and limit the attack surface on the native operating system. A sysadmin should t
 up-to-date and the programs running have been secured,but this can be time-consuming and error-prone to do by hand.
 By using a tool such as Canary, we can quickly evaluate a system and fix trivial errors.
 
+For example, we can check that
+
 \subsection{Leaky Files}
 
 One way that systems become compromised or secrets are leaked are from seemingly innocuous files which contain
@@ -169,6 +171,31 @@ secrets or system information. Log files can contain information such as passwor
 be used to gain access to other systems. These files can be put into a list and checked by Canary by checking
 whether the user running the process can read or write to the files. This can eliminate the vast majority of trivial
 security issues, and prevent any damage from occurring if a process is compromised or an unauthorized user gains access.
+
+If a system is using Nginx for a reverse proxy for example, we can check the permissions on the log files with
+
+\begin{lstlisting}[style=AMMA, language=bash]
+test -r /var/log/nginx/access.log && echo 'readable'
+\end{lstlisting}
+
+Which will print 'readable' if the file is readable. Any user can do this against a list of filenames. If the user
+finds an interesting log file, it would be simple to send the file contents back to the terminal or download it to
+analyze later. This issue could be resolved by reducing the permissions on the file or by removing the user's membership
+from a certain group. If the user was in a group called logreader for example, we could remove this access by running
+
+\begin{lstlisting}[style=AMMA, language=bash]
+gpasswd -d [username] logreader
+\end{lstlisting}
+
+Or if we wish to reduce the file to be read only by super users
+
+\begin{lstlisting}[style=AMMA, language=bash]
+chmod 600 /var/log/nginx/access.log
+\end{lstlisting}
+
+It is good practice to refrain from passing sensitive data into log files whenever possible, but even without
+sensitive data a log file could be used to infer information about a system which could give an attacker clues as to
+weak points in the system's security.
 
 \subsection{Phishing}
 
