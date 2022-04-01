@@ -79,6 +79,11 @@ M.~Cooney (2021).
 \bibitem[\protect\citeauthoryear{C.~Tozzi}{C.~Tozzi}{2017}]{why_docker}
 C.~Tozzi (2017)
 \newblock Understanding Why Docker is So Popular.
-\newblock {\em Container Journall.\/}.
+\newblock {\em Container Journal.\/}.
+
+\bibitem[\protect\citeauthoryear{Anjali, T.~Caraza-Harter, M.~M.~Swift}{Anjali~et~al.}{2020}]{firecracker_gvisor}
+Anjali, T.~Caraza-Harter, M.~M.~Swift (2017)
+\newblock Blending Containers and Virtual Machines: A Study of Firecracker and gVisor.
+\newblock {\em International Conferance on Virtual Execution Environments. \/}.
 
 \end{thebibliography}
