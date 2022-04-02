@@ -86,4 +86,20 @@ Anjali, T.~Caraza-Harter, M.~M.~Swift (2017)
 \newblock Blending Containers and Virtual Machines: A Study of Firecracker and gVisor.
 \newblock {\em International Conferance on Virtual Execution Environments. \/}.
 
+\bibitem[\protect\citeauthoryear{M.~Talbi, P.~Fariello}{Talbi~et~al.}{2021}]{qemu_escape}
+M.~Talbi, P.~Fariello (2021)
+\newblock VM Escape - QEMU Case Study.
+\newblock {\em Phrack Magazine. \/}.
+
+\bibitem[\protect\citeauthoryear{Amazon Web Services, Inc.}{Amazon Web Services, Inc.}{2022}]{firecracker_home}
+Amazon Web Services, Inc. (2022)
+\newblock Firecracker.
+\newblock {\em Amazon Web Services, Inc. \/}.
+
+\bibitem[\protect\citeauthoryear{The gVisor Authors}{The gVisor Authors}{2022}]{gvisor_docs}
+The gVisor Authors. (2022)
+\newblock What is gVisor?
+\newblock {\em The gVisor Authors. \/}.
+
+
 \end{thebibliography}

@@ -78,11 +78,13 @@ analyze the VM's events to identify anomalies.
 We can check if audits are enabled on the system by running
 
 \begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 If we are not auditing the system, we can enable it with
 
 \begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 \subsection {Securing Physical Storage Devices}
@@ -101,14 +103,16 @@ same device.
 We can check if the guest OS's storage settings by using virsh. We want to check that the guests do not have access to
 entire devices and the host is not using file system labels in the fstab file.
 
-\begin{lstlinsting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 If we detect that there is a vulnerable storage device connected, we will want to create a new storage device and
 transfer the existing data to it. The data transfer could be done in a number of different ways, but the new storage
 device can be set up using
 
-\begin{lstlinsting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 This will create a partition of the physical disk used for the guest VM to use instead and attach it to the guest.
@@ -123,12 +127,14 @@ properly stored.
 We can verify that the network storage devices are secure with a similar script to the physical devices. We want to
 verify that the data is encrypted during transfer and at rest, and that the encryption keys are not available to the host machine.
 
-\begin{lstlinsting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 If encryption is not set up, we can do so by running
 
-\begin{lstlinsting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 \subsection{Disable Access to Physical Devices}
@@ -168,7 +174,39 @@ the host and steps should be taken accordingly to protect the host.
 
 \subsubsection{KVM without QEMU}
 
+QEMU is a widely-known and used frontend for KVM virtual machines. However, QEMU has been the source of many bugs which could
+lead to remote code execution and therefore may not be the most secure choice in a production environment~\cite{qemu_escape}.
+It attempts to emulate as many device drivers as possible so that a virtual machine can function as similarly to a native machine as
+possible. This does greatly increase the attack surface since the majority of these devices would not be needed in a
+server environment.
+
+Firecracker, developed for AWS, addresses these issues by only supporting the bare minimum IO devices needed for a server.
+This means that it does not even implement a full keyboard driver. Firecracker is purely optimized for server workloads,
+especially serverless workloads as it boasts a < 125ms startup time~\cite{firecracker_home}. Other than its lack of
+support for additional IO devices, it works very similar to a QEMU virtual machine. It can be controlled by an HTTP api
+or via command line. To start a simple Firecracker VM, only a Linux kernel and a file system image is required after
+firecracker is installed on a system with KVM enabled.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
+\end{lstlisting}
+
 \subsubsection{LXC without system calls}
+
+Google's gVisor takes an approach to sandboxing more similar to containers than VM's. gVisor functions by utilizing
+LXC containerization but handles the container's system calls itself instead of passing them directly to the kernel.
+This means that gVisor's 'Sentry' component is essentially the VM for the container through which they interact with
+the host machine~\cite{gvisor_docs}. The use of gVisor with containers instead of a virtual machine will lead to greater
+performance than a fully virtualized setup through KVM while minimizing the security drawbacks of a container-only system.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{./fig/gVisor.drawio.png}
+    \end{center}
+    \caption{gVisor functions as a layer between LXC and the Linux kernel.}
+    \label{fig6}
+\end{figure}
+
 
 \subsection{Secure VM Image Storage}
 
@@ -185,17 +223,20 @@ enforced by setting up an AppArmor profile which prevents KVM from using images 
 the security policies on the storage location by running
 
 \begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 Additionally, we can check whether we have a policy in place to prevent use of other images with
 
 \begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 This issue is fairly straightforward to resolve. We will first move all images into a single location. Then, we can
 reduce the permissions on the files and directories, and finally enforce a new AppArmor profile for KVM.
 
 \begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
 \end{lstlisting}
 
 \section{Guest VM Considerations}
@@ -206,27 +247,67 @@ some considerations when configuring the guests that should be taken into accoun
 
 \subsection{Disable Networking Between Host and Guest VMs}
 
-A guest VM should function as if it was an independent system, especially if the VM is in a public cloud. Unless the
+A guest VM should function as if it was an independent system especially if the VM is in a public cloud. Unless the
 requirements state that the VM guests should be able to communicate, there should be no network communication allowed
-between the guests.
+between the guests. We can check the network settings using virsh
+
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
+\end{lstlisting}
+
+If the network configured allows communication between guests which should not have access, we should reassign it. This
+can be done without having to restart the system, but could cause issues with any existing iptables or general firewall
+rules if the guest is serving network requests.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
+\end{lstlisting}
 
 \subsection{Storage Encryption}
 
-Although a virtual machine's OS is separated from the host, the physical storage is still on the same drives as shared
-by the hosts and other guest machines. To prevent sensitive data from leaking accidentally or maliciously, the guest's
-data should be encrypted in a way which only that guest VM can read the data. Of course, an attacker with root access
-on a machine would be able to read encrypted data on a physical disk since the key is stored on the host. However, if
-this storage is in a separate location, such as a network drive, the data would be secure from any third party attacks
-such as man-in-the-middle snooping.
+A guest OS's storage should be encrypted whether it is stored on a physical disk partition or on a network drive. In
+both instances, the physical location of the data would likely be shared with other VM's and could be accessible by
+another machine with access to the drive. To prevent any unintentional data leak or leaks from malicious actors, the
+storage should always be encrypted whether it is at rest or in transmission, and the encryption keys should be
+stored securely.
 
-When analyzing the storage configuration of the guest, we can determine whether the storage attached to the guest has
-encryption set up. If not, we can automatically add an encryption format and generate a key for the user to then store
-in a secure location.
+Any unencrypted data could be read easily during a man-in-the-middle attack if a network drive is used, or directly
+from the disk if an attacker has root control of the host. To check whether data will be encrypted by the kernel, we
+can use virsh.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
+\end{lstlisting}
+
+We should always be sure to initialize the VM with an encrypted storage device, such as with
+
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
+\end{lstlisting}
+
+If this is not possible, such as with a VM which has already stored data, then the data must be copied to an encrypted
+location and the storage device must be switched. This would not be a trivial operation to accomplish depending on the
+role of the VM, and certainly difficult to accomplish with incurring downtime.
 
 \subsection{Hardened VM Images}
 
-Another easier solution than modifying an existing system would be to start from an OS image which is pre-configured to
-be compliant with a certain standard. This may be the most efficient solution since the system administrator will not
-need to modify the system in any way. However, we should consider that this will not be possible when working with an
-existing system, and there may not be an image provided which meets the requirements for an organization. Therefore, a
-general-purpose tool which can be used on any system to detect misconfiguration and fix trivial issues would be useful.
+Hardened VM images are images which have been pre-configured with a set of security rules in place. Use of this type of
+image can prevent many user errors since the image has been officially verified and is shared by many organizations.
+This approach is likely preferable to using a stock VM image such as the one provided by Ubuntu or RedHat but should
+still be supplemented by a security scan to ensure that the image's best practices are not out of date or misconfigured.
+
+This approach might still not be possible when working with an existing system such as a long-running guest VM.
+There also may not be an image provided which meets the requirements for an organization. If the requirements of the
+project dictate that a new hardened image can't be used for a guest VM, then it is possible to 'harden' the existing
+system and create an image of it for the organization's own use.
+
+Once a system has been configured to meet some security standard, we can create a new VM image based on the system
+using
+
+\begin{lstlisting}[style=AMMA, language=bash]
+echo "Hello, World"
+\end{lstlisting}
+
+This will create a copy of the current system when installed, so a blank version of the system should be used to create
+the ISO. If it is not possible to get a 'blank' version, more complex steps would be required to only copy needed files
+to the ISO.

@@ -2,7 +2,7 @@
 main.go
 \begin{lstlisting}[style=AMMA, language=go]
 /*
-Copyright © 2021 David Wiles <david@wiles.fyi>
+Copyright \copyright 2021 David Wiles <david@wiles.fyi>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@ import "github.com/david-wiles/canary/cmd"
 func main() {
 	cmd.Execute()
 }
+
 \end{lstlisting}
 
 cmd/root.go
 \begin{lstlisting}[style=AMMA, language=go]
 /*
-Copyright © 2021 David Wiles <david@wiles.fyi>
+Copyright \copyright 2021 David Wiles <david@wiles.fyi>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,7 +48,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/david-wiles/canary/pkg"
 	"github.com/spf13/cobra"
 	"os"
@@ -55,17 +55,8 @@ import (
 
 var (
 	autoFix bool
+	dontFix bool
 )
-
-func fatal(err error) {
-	// Set up terminal UI for errors
-	errorStyle := lipgloss.NewStyle().
-		Bold(true).
-		MarginTop(2).
-		Foreground(lipgloss.Color("1"))
-
-	_, _ = fmt.Println(errorStyle.Render("Fatal: " + err.Error()))
-}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -113,24 +104,28 @@ other status indicates an error.
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-
 		scanner := &pkg.CustomScanner{}
 
 		if err := scanner.Init(args[0]); err != nil {
-			fatal(err)
+			panic(err)
 			return
 		}
 
 		if err := scanner.Analyze(); err != nil {
-			fatal(err)
+			panic(err)
 			return
 		}
 
-		if err := scanner.Fix(autoFix); err != nil {
-			fatal(err)
+		ok, err := scanner.Fix(autoFix, dontFix)
+		if err != nil {
+			panic(err)
 			return
 		}
 
+		if !dontFix && !ok {
+			// Exit with non-zero exit code if issues remain unfixed
+			os.Exit(1)
+		}
 	},
 }
 
@@ -145,6 +140,7 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVar(&autoFix, "fix", false, "Automatically fix issues")
+	rootCmd.PersistentFlags().BoolVar(&dontFix, "scan", false, "Only scan for issues")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -263,14 +259,14 @@ func (c *CustomScanner) Analyze() error {
 }
 
 // Fix the issues found by a scan. Analyze() must be called first to build the IssueList
-func (c *CustomScanner) Fix(autoFix bool) error {
+func (c *CustomScanner) Fix(autoFix, dontFix bool) (bool, error) {
 	if len(c.Issues) > 0 {
 		c.Issues.PrintIssues("Issues Detected")
-		return c.Issues.Fix(autoFix)
+		return c.Issues.Fix(autoFix, dontFix)
 	}
 
 	c.Issues.PrintIssues("No Issues Detected")
-	return nil
+	return true, nil
 }
 
 // Read the step's config file if it exists. Otherwise, default settings are used
@@ -338,7 +334,7 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/fatih/color"
 	"strings"
 )
 
@@ -364,13 +360,11 @@ type Issue struct {
 
 	// Message to print to the terminal when PrintIssues is called. Explains the
 	// issue and its severity. messageStyle is used to render the issue
-	message      string
-	messageStyle lipgloss.Style
+	message string
 
 	// If the issue has a programmatic solution, the user will be prompted to fix
 	// it with the string stored in prompt. promptStyle will be used to render
-	prompt      string
-	promptStyle lipgloss.Style
+	prompt string
 }
 
 type IssueList []*Issue
@@ -379,131 +373,132 @@ type IssueList []*Issue
 // RenderTitle functions. These will be printed directly to the terminal instead
 // of being returned as a string
 func (list IssueList) PrintIssues(header string) {
-	headerTemplate := lipgloss.NewStyle().
-		Bold(true).
-		MarginTop(2).
-		MarginBottom(2)
-
-	// Print header
-	_, _ = fmt.Println(headerTemplate.Render(header))
-
-	styleTemplate := lipgloss.NewStyle().
-		MarginLeft(2).
-		MarginRight(2)
-
-	renderString := ""
-
+	color.White(header)
 	for _, issue := range list {
-
-		renderString += issue.RenderTitle(styleTemplate) + "\n"
-
+		issue.RenderTitle()
 	}
-
-	_, _ = fmt.Println(renderString)
+	color.White("\n")
 }
 
 // Fix will fix all issues in an IssueList as long as autofix is true
 // and a solution exists. If there is not a solution, then the user
 // is simply prompted with directions to fix the issue
-func (list IssueList) Fix(autoFix bool) error {
+func (list IssueList) Fix(autoFix, dontFix bool) (bool, error) {
+	resolved := true
+
 	for _, issue := range list {
-		if autoFix && issue.Solution != nil {
-			if err := issue.Solution(); err != nil {
-				return err
+		if issue.Solution != nil && !dontFix {
+			if autoFix {
+				if err := issue.Solution(); err != nil {
+					return false, err
+				}
+			} else {
+				ok, err := issue.PromptFix()
+				if err != nil {
+					return false, err
+				}
+				if !ok {
+					resolved = false
+				}
 			}
 		} else {
-			if err := issue.PromptFix(); err != nil {
-				return err
-			}
+			resolved = false
 		}
 	}
-	return nil
+	return resolved, nil
 }
 
-// RenderInfo will return a string containing the issue's message
-func (issue Issue) RenderInfo(template lipgloss.Style) string {
-	return template.Inherit(issue.messageStyle).Render(issue.message)
+// RenderInfo will print the issue's info string
+func (issue Issue) RenderInfo() {
+	color.White(issue.message)
 }
 
-// RenderTitle will generate a string using lipgloss based on the issue's Title
-func (issue Issue) RenderTitle(template lipgloss.Style) string {
-	return template.Inherit(issue.messageStyle).Render(issue.title)
+// RenderTitle will print the issue's title
+func (issue Issue) RenderTitle() {
+	switch issue.severity {
+	case SeverityCritical:
+		color.HiMagenta(issue.title)
+	case SeveritySerious:
+		color.Red(issue.title)
+	case SeverityWarning:
+		color.Yellow(issue.title)
+	case SeverityMinor:
+		color.White(issue.title)
+	}
 }
 
 // Prompts the user to fix the issue and calls the solution function if they choose
 // to fix it. If there is no programmatic solution, a prompt may still be printed
 // but a user input will not be anticipated
-func (issue Issue) PromptFix() error {
+func (issue Issue) PromptFix() (bool, error) {
 
 	if len(issue.prompt) == 0 {
-		return nil
+		return false, nil
 	}
 
 	if issue.Solution != nil {
-
-		_, _ = fmt.Println(issue.promptStyle.Render(issue.prompt + "\n" + "Do you wish to fix these Issues? [Y/n]"))
+		color.White(issue.prompt + "\n" + "Do you wish to fix these Issues? [Y/n]")
 
 		var input string
 		_, err := fmt.Scanln(&input)
 		if err != nil {
-			return err
+			if err.Error() == "unexpected newline" {
+				input = ""
+			} else {
+				return false, err
+			}
 		}
 
 		// If the user does not enter n or N, fix this issue
 		if strings.ToLower(input) != "n" {
-			return issue.Solution()
+			if err := issue.Solution(); err != nil {
+				return false, err
+			}
+			return true, nil
 		}
 
 	} else {
 
-		_, _ = fmt.Println(issue.promptStyle.Render(issue.prompt + "\n" + "(This issue must be fixed manually)"))
-
+		color.White(issue.prompt + "\n" + "(This issue must be fixed manually)")
+		return false, nil
 	}
 
-	return nil
+	return false, nil
 }
 
 // MinorIssue will generate an Issue with minor severity
 func MinorIssue(title, message string) *Issue {
 	return &Issue{
-		severity:     SeverityMinor,
-		message:      message,
-		title:        title,
-		messageStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("1")),
-		promptStyle:  lipgloss.NewStyle().PaddingTop(1).BorderTop(true).BorderStyle(lipgloss.NormalBorder()),
+		severity: SeverityMinor,
+		message:  message,
+		title:    title,
 	}
 }
 
 // WarningIssue will generate an Issue with warning severity
 func WarningIssue(title, message string) *Issue {
 	return &Issue{
-		severity:     SeverityWarning,
-		message:      message,
-		title:        title,
-		messageStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("1")),
-		promptStyle:  lipgloss.NewStyle().Margin(1),
+		severity: SeverityWarning,
+		message:  message,
+		title:    title,
 	}
 }
 
 // SevereIssue will generate an Issue with severe severity
 func SevereIssue(title, message string) *Issue {
 	return &Issue{
-		severity:     SeveritySerious,
-		message:      message,
-		title:        title,
-		messageStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#ffcc2b")).Bold(true),
-		promptStyle:  lipgloss.NewStyle().Margin(1).Background(lipgloss.Color("3")),
+		severity: SeveritySerious,
+		message:  message,
+		title:    title,
 	}
 }
 
 // CriticalIssue will generate an Issue with critical severity
 func CriticalIssue(title, message string) *Issue {
 	return &Issue{
-		severity:     SeverityCritical,
-		message:      message,
-		title:        title,
-		messageStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#ffcc2b")).Bold(true),
-		promptStyle:  lipgloss.NewStyle().Margin(1),
+		severity: SeverityCritical,
+		message:  message,
+		title:    title,
 	}
 }
 
