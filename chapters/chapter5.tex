@@ -78,14 +78,10 @@ analyze the VM's events to identify anomalies.
 We can check if audits are enabled on the system by running
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+sudo cat /etc/libvirt/libvirtd.conf | grep 'audit_level'
 \end{lstlisting}
 
-If we are not auditing the system, we can enable it with
-
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
-\end{lstlisting}
+We expect the level to be set to 1 or 2. If this is not set, we should edit the file and restart the libvirtd service.
 
 \subsection {Securing Physical Storage Devices}
 A guest VM with access to an entire storage device may be able to attack the host or other guests by rewriting volume
@@ -188,7 +184,23 @@ or via command line. To start a simple Firecracker VM, only a Linux kernel and a
 firecracker is installed on a system with KVM enabled.
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+cat <<EOF > ./vmconfig.json
+{
+  "boot-source": {
+    "kernel_image_path": "./vmlinux.bin",
+  },
+  "drives": [
+    {
+      "drive_id": "rootfs",
+      "path_on_host": "./rootfs.ext4",
+      "is_root_device": true,
+      "is_read_only": false
+    }
+  ],
+}
+EOF
+# start firecracker
+sudo firecracker --no-api --config-file ./vmconfig.json
 \end{lstlisting}
 
 \subsubsection{LXC without system calls}
@@ -220,10 +232,10 @@ profiles are set up, the images can be considered secured. We can check this alo
 While it is possible to store images in separate locations if both locations are secure, it is much more manageable and
 less error-prone to store them in a single location. Storage of VM images in other locations should be disallowed and
 enforced by setting up an AppArmor profile which prevents KVM from using images in any other location. We can check
-the security policies on the storage location by running
+the security policies on libvirtd
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+sudo cat /etc/apparmor.d/usr.sbin.libvirtd
 \end{lstlisting}
 
 Additionally, we can check whether we have a policy in place to prevent use of other images with
@@ -273,16 +285,29 @@ stored securely.
 
 Any unencrypted data could be read easily during a man-in-the-middle attack if a network drive is used, or directly
 from the disk if an attacker has root control of the host. To check whether data will be encrypted by the kernel, we
-can use virsh.
+can examine the xml definition for the storage volume. In the following file, the encryption tag tells libvirt to create
+a volume with the given keys
 
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+\begin{lstlisting}[style=AMMA, language=xml]
+<volume>
+  <name>example.luks</name>
+  <capacity unit='G'>1</capacity>
+  <target>
+    <path>/var/lib/libvirt/images/example.luks</path>
+    <format type='raw'/>
+    <encryption format='luks'>
+       <secret type='passphrase' uuid='20755d8a-5ec5-4fd8-94cf-95aa7aea9ba4'/>
+       <cipher name='twofish' size='256' mode='cbc' hash='sha256'/>
+       <ivgen name='plain64' hash='sha256'/>
+    </encryption>
+  </target>
+</volume>
 \end{lstlisting}
 
 We should always be sure to initialize the VM with an encrypted storage device, such as with
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+virsh attach-disk --config [vm name] [storage xml definition]
 \end{lstlisting}
 
 If this is not possible, such as with a VM which has already stored data, then the data must be copied to an encrypted
@@ -305,7 +330,10 @@ Once a system has been configured to meet some security standard, we can create 
 using
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+virt-install \
+  --name [vm name] \
+  --cdrom [path to iso] \
+  --os-variant [os type]
 \end{lstlisting}
 
 This will create a copy of the current system when installed, so a blank version of the system should be used to create

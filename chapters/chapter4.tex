@@ -182,7 +182,8 @@ Depending on which storage driver the volume uses, we may not be able to limit i
 should use storage drivers which support this feature. To create a new volume and attach it to a container, one should use
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+docker volume create --driver local --opt type=tmpfs --opt device=tmpfs --opt o=size=100m test-vol
+docker run -d redis:alpine --mount source=test-vol,target=/var/log/redis
 \end{lstlisting}
 
 \subsection{Shared Files}
@@ -199,8 +200,10 @@ but we can start Docker containers with separate volumes mounted in a separate l
 that the data written is only used by that container. We could do so by using a start command such as
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+docker run -d --name nginx-example --mount source=nginx-logs,target=/var/log/nginx nginx:alpine
 \end{lstlisting}
+
+Which would specify that the nginx logs should be directed to the new volume containing only log files.
 
 \subsection{Volume issue remediation}
 One solution for both problems is to designate a separate partition for the Docker volumes to reside. This will ensure
@@ -208,8 +211,22 @@ that a runaway container can't attack the host through the file system and no fi
 by a container. If we wish to create a new partition for each Docker container, we could automate the process by
 using a sequence of commands like shown below.
 
+Create partition an existing device.
+
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+parted [device]
+\end{lstlisting}
+
+Create a docker volume on our new partition
+
+\begin{lstlisting}[style=AMMA, language=bash]
+docker volume create --driver local --opt device=:[partition mount point] [volume name]
+\end{lstlisting}
+
+Finally, we should restart the container with the new volume attached
+
+\begin{lstlisting}[style=AMMA, language=bash]
+docker run -d --mount source=[volume name],target=[mount point in container] [image]
 \end{lstlisting}
 
 \section{Kernel Security Features}
@@ -223,10 +240,10 @@ allow the bare minimum features required for the container. These are all featur
 A container is not a jailed process but does use kernel features to sandbox applications from the rest of the system.
 Linux namespaces allow separation of resources for a well-defined set of processes, which is a
 necessity for containers to run without full virtualization. Unless otherwise specified, each Docker container will be
-created with its own namespace. We can test the namespace separation for a set of containers if we know their PID's.
+created with its own namespace.
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+sudo lsns | grep $(sudo docker top [container name] | awk '{if (NR!=1) {print $2}}')
 \end{lstlisting}
 
 Docker, LXC, and other container runtimes will all use this feature by default. If there is an issue with namespaces on
@@ -248,21 +265,30 @@ by Wan, Lo, and Xia show that we can trace the system calls used by a container 
 configuration of the container to disallow any other system calls~\cite{WanZhiyuan2019Paes}. This should be done
 whenever possible to limit the attack surface on the container when used in a production environment.
 
+Once we have created a new profile for a specific container, we can start the container with that profile, such as
+
+\begin{lstlisting}[style=AMMA, language=bash]
+docker run --security-opt seccomp=[path to profile] [image name]
+\end{lstlisting}
+
 \section{Docker Network Settings}
 
 A new container will use the default network, which allows access to all other containers in the network. Unless this
 is the desired behavior, containers should have their own networks or use a network containing only the containers
 through which communication is necessary. The network used by a container can be specified when the container is created.
 
-Checking which networks are used by a container can be checked using a Docker client
+Checking which networks are used by a container can be checked using the Docker client. This will give us a json
+map of the connected networks and the network information.
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+docker inspect [container name] -f "{{ json .NetworkSettings.Networks }}"
 \end{lstlisting}
 
 If we find containers that are using the default network or are accessible by container which are not necessary, we
-can create a new network and restart the container with it by using
+can create a new network and attach it to the container using
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+docker network create [network name]
+docker network connect [network name] [container name]
+docker network disconnect bridge [container name]
 \end{lstlisting}
