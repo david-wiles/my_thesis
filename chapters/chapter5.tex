@@ -78,10 +78,15 @@ analyze the VM's events to identify anomalies.
 We can check if audits are enabled on the system by running
 
 \begin{lstlisting}[style=AMMA, language=bash]
-sudo cat /etc/libvirt/libvirtd.conf | grep 'audit_level'
+cat /etc/libvirt/libvirtd.conf | grep '^audit_level'
 \end{lstlisting}
 
-We expect the level to be set to 1 or 2. If this is not set, we should edit the file and restart the libvirtd service.
+We should see an entry in the file for audit\_level which is not commented. If we are not auditing the system, we can enable it with
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo echo "audit_level=2" | sudo tee -a /etc/libvirt/libvirtd.conf > /dev/null
+sudo systemctl restart libvirtd
+\end{lstlisting}
 
 \subsection {Securing Physical Storage Devices}
 A guest VM with access to an entire storage device may be able to attack the host or other guests by rewriting volume
@@ -100,38 +105,15 @@ We can check if the guest OS's storage settings by using virsh. We want to check
 entire devices and the host is not using file system labels in the fstab file.
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+for pool in $(virsh pool-list --type disk | tail -n +3 | awk '{print $1}'); do
+    virsh pool-info pool
+done
+cat /etc/fstab
 \end{lstlisting}
 
-If we detect that there is a vulnerable storage device connected, we will want to create a new storage device and
-transfer the existing data to it. The data transfer could be done in a number of different ways, but the new storage
-device can be set up using
-
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
-\end{lstlisting}
-
-This will create a partition of the physical disk used for the guest VM to use instead and attach it to the guest.
-
-\subsection {Securing Network Storage Devices}
-
-Although a performance hit may be incurred, a storage device using the network may be a more sustainable and secure
-solution if possible. This would allow for easier storage backups and failure tolerance. An extra consideration from
-this perspective is to ensure that the data is encrypted while transferred and at rest and the encryption keys are
-properly stored.
-
-We can verify that the network storage devices are secure with a similar script to the physical devices. We want to
-verify that the data is encrypted during transfer and at rest, and that the encryption keys are not available to the host machine.
-
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
-\end{lstlisting}
-
-If encryption is not set up, we can do so by running
-
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
-\end{lstlisting}
+This will print out information about each disk device along with the fstab file. The administrator should then
+check this against the fstab file to ensure the guests do not have access to entire devices and they are not using the
+labels in the fstab file.
 
 \subsection{Disable Access to Physical Devices}
 
@@ -222,34 +204,23 @@ performance than a fully virtualized setup through KVM while minimizing the secu
 
 \subsection{Secure VM Image Storage}
 
-VM images should be stored in a single, secure location. The images should not be accessible by any users other than the
+VM images should be stored in a single, secure location. Libvirt stores images in /var/lib/libvirt/images by default,
+which should not be moved unless needed for a specifc reason. The images should not be accessible by any users other than the
 ones who must read or modify them. Images stored at rest are a target for a malicious actor since injecting malicious
 code can allow an attack to remain ongoing and undetected for a long period of time similar to a traditional boot
 sector virus. This virus would be recreated every time a new VM is created, allowing the attacker to steal information
 from an organization for an ongoing period. As long as it is not publicly readable or writable and the relevant AppArmor
 profiles are set up, the images can be considered secured. We can check this along with the other file permission checks.
 
-While it is possible to store images in separate locations if both locations are secure, it is much more manageable and
-less error-prone to store them in a single location. Storage of VM images in other locations should be disallowed and
-enforced by setting up an AppArmor profile which prevents KVM from using images in any other location. We can check
-the security policies on libvirtd
+We can check the security policies on libvirtd by using
 
 \begin{lstlisting}[style=AMMA, language=bash]
 sudo cat /etc/apparmor.d/usr.sbin.libvirtd
 \end{lstlisting}
 
-Additionally, we can check whether we have a policy in place to prevent use of other images with
-
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
-\end{lstlisting}
-
-This issue is fairly straightforward to resolve. We will first move all images into a single location. Then, we can
-reduce the permissions on the files and directories, and finally enforce a new AppArmor profile for KVM.
-
-\begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
-\end{lstlisting}
+Libvirtd is the daemon process enabling the creation of VM's on Linux machines with libvirt installed. The AppArmor policies
+on libvirtd are considered relatively permissive, but strict policies are automatically created for the guest VM which
+enforce the separation of the guest VM and host OS.
 
 \section{Guest VM Considerations}
 
@@ -257,23 +228,41 @@ As with a KVM host, all procedures to secure a bare metal machine should be foll
 A guest VM will likely not even know it is a VM, so it should be secured in the same way as the host. However, there are
 some considerations when configuring the guests that should be taken into account to prevent holes in the security setup.
 
-\subsection{Disable Networking Between Host and Guest VMs}
+\subsection{Isolate Guest VM Networks}
 
 A guest VM should function as if it was an independent system especially if the VM is in a public cloud. Unless the
-requirements state that the VM guests should be able to communicate, there should be no network communication allowed
-between the guests. We can check the network settings using virsh
+requirements state that the VM guests should be able to communicate, there should be no private network communication
+allowed between the guests. This simply means that guest VM's should not be attached to the same private network
+except in cases that the user wants to configure their VM's this way, however, this would be out of the scope of this
+paper.
+
+To examine the networks on a host machine, we can use
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+virsh net-list
 \end{lstlisting}
 
-If the network configured allows communication between guests which should not have access, we should reassign it. This
-can be done without having to restart the system, but could cause issues with any existing iptables or general firewall
-rules if the guest is serving network requests.
+to list all the networks. For detailed examination of which guest VM's are attached to a network we can also use virsh.
 
 \begin{lstlisting}[style=AMMA, language=bash]
-echo "Hello, World"
+virsh
 \end{lstlisting}
+
+If the network configured allows private communication between guests, we should create a new network for each VM and
+add the guest to the new network.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+# Detach the guest from a network interface
+virsh detach-interface [VM] [network type] --live
+# Create a new network for this guest
+virsh net-create [xml file]
+# Attach the new network to the guest VM
+virsh attach-interface [VM] [network type] [network source]
+\end{lstlisting}
+
+This will likely need to be done by an administrator in a live environment and would likely break any applications on
+the guest VM's. A better approach is to create the VM with the proper network interface from the start instead of
+retroactively modifying it.
 
 \subsection{Storage Encryption}
 
@@ -285,8 +274,8 @@ stored securely.
 
 Any unencrypted data could be read easily during a man-in-the-middle attack if a network drive is used, or directly
 from the disk if an attacker has root control of the host. To check whether data will be encrypted by the kernel, we
-can examine the xml definition for the storage volume. In the following file, the encryption tag tells libvirt to create
-a volume with the given keys
+can examine the xml definition for the storage volume. In the following XML, the encryption tag tells libvirt to create
+a volume using a secret key associated with the UUID.
 
 \begin{lstlisting}[style=AMMA, language=xml]
 <volume>
