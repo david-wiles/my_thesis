@@ -259,7 +259,7 @@ By \\
 
 \vspace{-2em}
 
-{\raggedleft \hfill 57 Pages}  % Replace XX with the number of pages.		%replace with newer page
+{\raggedleft \hfill 74 Pages}  % Replace XX with the number of pages.		%replace with newer page
 
 {\raggedright Directed by: Dr. Guangming Xing, Dr. Michael Galloway, Dr. Qi Li }  % Put your thesis committee here.
 
