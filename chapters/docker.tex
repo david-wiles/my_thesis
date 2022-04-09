@@ -68,15 +68,15 @@ properly set.
 \begin{center}
     \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
         \hline
-        Issue & Attack Type & Affected Components \\ [0.5ex]
+        Issue & Scanning Type & Remediation Type \\ [0.5ex]
         \hline\hline
-        Docker socket access & Privilege escalation & Access control, Docker engine \\
+        Docker Socket Access & CLI Action & Configuration File Search and Replace or Manual Action \\
         \hline
-        Docker volumes & Denial of service, InfoLeak & File System \\
+        Docker Volumes & ClI Action & CLI Action \\
         \hline
-        AppArmor and seccomp & Remote code execution, privilege escalation & Access control, OS kernel \\
+        AppArmor and seccomp & CLI Action & Manual \\
         \hline
-        Docker network setup & InfoLeak & Network \\ [0.5ex]
+        Docker network setup & CLI Action & CLI Action \\ [0.5ex]
         \hline
     \end{tabular}
 \end{center}

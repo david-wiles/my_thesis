@@ -101,5 +101,9 @@ The gVisor Authors. (2022)
 \newblock What is gVisor?
 \newblock {\em The gVisor Authors. \/}.
 
+\bibitem[\protect\citeauthoryear{The Center for Internet Security}{The Center for Internet Security}{2019}]{cis_nginx}
+The Center for Internet Security. (2019)
+\newblock CIS NGINX Benchmark.
+\newblock {\em The Center for Internet Security. \/}.
 
 \end{thebibliography}

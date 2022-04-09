@@ -1,0 +1,150 @@
+\chapter{Security Scanning and Remediation Patterns}
+
+The tasks created to scan and fix security issues in software can be reduced to a number of similar patterns. Actions
+used to scan for software issues can be reduced to the following groups:
+
+\begin{center}
+    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+        \hline
+        Action & Can Be Automated & Needs Only Unix Tools  \\ [0.5ex]
+        \hline\hline
+        Software CLI interaction & Yes & Yes \\
+        \hline
+        Configuration File Search & Yes & Depends on Software \\
+        \hline
+        XML/JSON/YAML File Parse & Yes & No \\
+        \hline
+        Unix Tools Action & Yes & Yes \\ [0.5ex]
+        \hline
+    \end{tabular}
+\end{center}
+
+Likewise, issue remediation can be reduced into the following groups:
+
+\begin{center}
+    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+        \hline
+        Action & Can Be Automated & Needs Only Unix Tools  \\ [0.5ex]
+        \hline\hline
+        Software CLI Action & Yes & No \\
+        \hline
+        Configuration File Find and Replace & Yes & Yes \\
+        \hline
+        Manual Remediation & No & No \\
+        XML/JSON/YAML File Update & Yes & No \\ [0.5ex]
+        \hline
+    \end{tabular}
+\end{center}
+
+Note that to fix a specific issue some automated tasks may break the system so a manual action would be preferable.
+
+
+\section{Scanning Techniques}
+
+Software configuration scanning techniques will be defined in the following section along with broad examples of how
+to implement the technique.
+
+\subsection{Interaction with a Software's CLI}
+
+Some software will be primarily interacted with through a command-line interface. An example of this is Docker. Although
+all actions can be performed through an HTTP interface to the Docker daemon, the most common and well-documented way to
+interact is with the Docker command-line client. This client is maintained by Docker itself and is intended to be the
+primary way that the user manages Docker containers and the Docker daemon.
+
+Software such as this will provide commands that can be used to determine how the software is set up. There will likely
+be ways to view configuration and modify configuration from the command line. With Docker, it is possible to inspect a
+container to view all the information related to it, for example. This output can then be checked to ensure that certain
+policies are in place.
+
+\subsection{Configuration File Parsing}
+
+One common way to configure software in Linux is through configuration files. These files can define the
+behavior of a program and so parsing these files can help us determine what that behavior will be and whether it
+matches our requirements.
+
+These configuration files could be as simple as a key-value store, like the SSH daemon uses. It is relatively simple
+to use Unix Tools alone to determine whether our ssh configuration meets our requirements since a Regex search would
+reliably determine whether a certain parameter is enabled. For example, if we want to disable password authentication,
+we would search for a line such as
+
+\begin{lstlisting}[style=AMMA]
+PasswordAuthentication yes
+\end{lstlisting}
+
+It is clear that this can be done with a Regex expression.
+
+Other software may use a DSL to define configuration. These programs may have behavior too complex to define with a
+file as simple as a key-value store and would require extra syntax to concisely define its behavior. The web server
+Nginx is a good example of software with a DSL used in configuration files. The .conf files may be easy for the user
+to read and understand, but a computer would be unable to track the context of the file without using special software
+to parse the file. This makes scanning configuration files with a DSL more similar to parsing XML files since it is
+often not possible to reliably determine whether a configuration is correct using only Unix Tools.
+
+\subsection{XML/JSON/YAML File Parsing}
+
+XML, JSON, and YAML are popular markup languages. Due to their widespread use and simple syntax to understand, many
+software projects may choose to adopt one of them as their configuration file's syntax instead of creating a DSL. This
+standardization would make it much easier for other programs to interpret the files since parsers would often be
+included in the language's standard library.
+
+Despite this, scanning a configuration file which uses a markup language would not be possible without help from an
+external tool. This tool could be generic, like jq, or domain-specific for the particular software. Either way, the
+file would need to be parsed and checked against a list of requirements to determine if the setup meets standards.
+
+\subsection{Actions With Unix Tools Only}
+
+Setting up a new program also involves configuring the system it will run on. There must be a user to run the process
+and that process may require AppArmor policies to ensure that the process can't damage other parts of the system.
+Scanning these parts of the Linux kernel would only require built-in tools.
+
+\section{Remediation Techniques}
+
+Software configuration remediation techniques will be defined in the following section along with broad examples of how
+to implement the technique.
+
+\subsection{Interaction with a Software's CLI}
+
+Many software projects will provide a CLI which allows for direct modification of its behavior. If we have identified
+a specific issue we may be able to use this CLI to modify the program's behavior without needing to restart the program.
+This CLI update would be a relatively simple process since we would only need to determine which specific arguments
+to use with the CLI.
+
+This is especially true for daemon processes which are used to start other processes, like the Docker daemon. We may
+have specific requirements for the behavior of the network used by Docker containers. The Docker CLI provides
+commands to create and manage the networks assigned to specific containers, so we would be able to change this aspect
+of the program's behavior without stopping and restarting the whole Docker daemon.
+
+\subsection{Configuration File Find and Replace}
+
+Software which uses simple configuration files are an easy target for configuration file remediation. After scanning
+the file to see if a requirement is met, we will likely be able to use a program such as sed to find the offending
+configuration and modify it.
+
+The steps involved to remediate this would be
+
+\begin{itemize}
+    \item Modify the configuration issue with sed, e.g. 'sed -i 's/foo/bar/' /var/?/conf
+    \item Restart the program's process
+\end{itemize}
+
+\subsection{XML/JSON/YAML File Modification}
+
+Programs which use a DSL or markup language to define their behavior could also be fixed with a find and replace action,
+but the specific programs used would need to include a specific program to parse and modify the markup.
+
+The steps involved with this type of configuration file would include
+
+\begin{itemize}
+    \item Read and parse configuration file
+    \item Modify offending attribute
+    \item Update configuration file
+    \item Restart the program
+\end{itemize}
+
+Notice that this is similar to a basic configuration file find and replace, except the 'find and replace' action would
+need to be done within a parser for the DSL.
+
+\subsection{Manual Remediation}
+
+Some isses are too complex or specific to the system to be resolved through automated means. These issues will require
+an engineer to analyze the system to determine the best course of action.

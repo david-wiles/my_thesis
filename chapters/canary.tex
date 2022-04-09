@@ -1,0 +1,101 @@
+\chapter{Canary: A CLI for Security}
+
+Canary is a generic security scanner and resolver meant to be extendable through creation of independent packages.
+
+\section{Canary Background}
+
+\subsection{Purpose}
+
+My goal in creating this software was to see if a system could be examined for common vulnerabilities programmatically.
+Although there are many books written about setting up a system securely and many VM images can be found with best
+practices already configured there is not a well known all-purpose program which could be used to securely set up a system.
+Canary was created in an attempt to demonstrate that this void could be filled relatively simply using a combination of
+a command-line program and remote repository.
+
+\subsection{Inspiration}
+
+The initial inspiration for Canary came from the package manager for node, 'npm'.  Whenever the user installs new software,
+npm will automatically scan the packages for vulnerabilities and generate a report for the user. The software will also
+automatically upgrade the affected packages if possible to resolve these issues. A similar program for linux machines could
+scan a system for misconfiguration and report to the user issues which were found. If these issues could be easily
+fixed programmatically then the user could run a script to fix the issues. Although this does not guarantee safety
+or even that the system would work, it does provide a good starting point for an engineer who is setting up a system.
+
+\section{Canary Implementation}
+
+Canary is a CLI but a related remote repository is crucial for the program's viability as a security solution.
+
+\subsection{Canary Usage}
+
+There are four commands included with this first version of Canary.
+
+\begin{center}
+\begin{tabular}{||p{0.2\textwidth} p{0.7\textwidth}||}
+    \hline
+    Command & Description \\ [0.5ex]
+    \hline\hline
+    Install & Installs packages from a remote repository  \\
+    \hline
+    Upgrade & Upgrades packages to their latest version \\
+    \hline
+    Remove & Removes packages from local storage \\
+    \hline
+    Check & Uses packages to check for issues and resolve them \\ [0.5ex]
+    \hline
+\end{tabular}
+\end{center}
+
+With each command the option '--local' can be passed to specify the local storage for packages, otherwise the
+directory '~/.canary' will be used. The remote repository can also be specified on the command line if the default is
+not desired.
+
+On the check command it is possible to specify a package not from the remote repository by using the flag
+--directory to speicify the root directory of the custom package. This command also supports '--auto-fix' to fix
+issues without prompting the user and '--scan-only' to report issues without prompting the user to fix them.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=1\textwidth]{./fig/Canary Flowchart.drawio.png}
+    \end{center}
+    \caption{High-level overview of Canary program execution.}
+    \label{fig1}
+\end{figure}
+
+\subsection{Design}
+
+Canary is a command-line program written in Scala. It contains a custom argument parser which then intializes specific
+commands based on the user input. The only runtime dependencies of the project are Softwaremill's STTP for an HTTP client
+and the Compress library Apache Commons to extract gzipped archives downloaded from the remote Canary repository.
+
+The install command checks the remote repository for the specified packages and downloads them into a local directory if
+they exist. It then verifies the checksum from the remote repository and extracts the archive into the local folder so
+the package can be used.
+
+Upgrade performs a similar action to install, but only acts on packages that already exist locally. This is to prevent
+unintentional actions by the user.
+
+Remove will check that a package exists and remove all files related to it in the local Canary root directory.
+
+The check command performs the actual software scanning and issue resolution. Check will use the specified packages and
+run each 'analyze' file to determine if there are security issues by checking the exit status of the program. If the
+exit status was not 0, then Canary will prompt the user and run any provided solution file to resolve the issues
+identified.
+
+\subsection{Canary Packages}
+
+A Canary package is a directory containing tasks. These tasks are also directories, which contain shell scripts and a
+configuration file, which should be called 'config'. This file will specify the name of any other scripts to run and
+include a description of the issue.
+
+\subsection{The Canary Repository}
+
+Crucial to the viability of Canary as a way to automatically scan issues is a remote repository to maintain packages.
+Successful software today is dependent on a seamless way to distribute and extend itself, such as with npm. Downloading
+and executing software is always risky, so users can be sure that the packages they download are trusted and have been
+verified to reduce this risk.
+
+This also makes it more simple for third parties to add security checks for their own programs. An organization which
+wants to release a package on Canary could submit their package to be stored on the Canary repository instead of
+trying to distribute their own package and security scanner. Approaching security this way allows the project maintainers
+to update security best practices as soon as they change and immediately distribute the changes to all users of Canary.
+

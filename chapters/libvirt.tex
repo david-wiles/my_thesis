@@ -1,7 +1,7 @@
-\chapter{KVM Host Considerations}
+\chapter{libvirt Host Considerations}
 
-A machine used as a host for KVM virtual machines should be setup using its own set of guidelines to ensure that the
-attack surface between VM's or a VM and the host is minimized.
+Libvirt is the default interface used with KVM and other virtualization backends on many Linux distributions. These
+considerations use KVM as an example, but other backends such as Xen or VirtualBox could also be used with libvirt.
 
 \section {Overview of KVM}
 
@@ -48,19 +48,17 @@ VM's have been mitigated.
 \begin{center}
     \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
         \hline
-        Issue & Attack Type & Affected Components \\ [0.5ex]
+        Issue & Scanning Type & Remediation Type \\ [0.5ex]
         \hline\hline
-        Libvirt audits & Intrusion detection & General Considerations \\
+        Libvirt audits & CLI Action & CLI Action \\
         \hline
-        Use partitions of physical storage & Privilege escalation & File System \\
+        Secure Physical Storage & CLI Action & Manual \\
         \hline
-        Encrypt network storage & Infoleak & File System \\
+        Encrypt Storage Pools & Configuration File Search & Manual \\
         \hline
-        Disable unused external devices & Remote code execution & Device drivers \\
+        Disable unused external devices & N/A & Manual \\
         \hline
-        Untrusted VM Images & InfoLeak, RCE & Network \\
-        \hline
-        Non-isolated guest networking & Infoleak & Networking \\ [0.5ex]
+        Avoid Untrusted VM Images & N/A & Manual \\ [0.5ex]
         \hline
     \end{tabular}
 \end{center}
@@ -240,12 +238,6 @@ To examine the networks on a host machine, we can use
 
 \begin{lstlisting}[style=AMMA, language=bash]
 virsh net-list
-\end{lstlisting}
-
-to list all the networks. For detailed examination of which guest VM's are attached to a network we can also use virsh.
-
-\begin{lstlisting}[style=AMMA, language=bash]
-virsh
 \end{lstlisting}
 
 If the network configured allows private communication between guests, we should create a new network for each VM and

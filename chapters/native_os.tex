@@ -8,15 +8,17 @@ fixing them to ensure that there are no holes.
 \begin{center}
     \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
         \hline
-        Issue & Attack Type & Affected Components \\ [0.5ex]
+        Issue & Scanning Type & Remediation Type \\ [0.5ex]
         \hline\hline
-        Outdated Software & Arbitrary Code Execution & OS Processes \\
+        Outdated Software & CLI Action & CLI Action \\
         \hline
-        Unencrypted communications & InfoLeak, Man-In-The-Middle Attack & Network, Authentication \\
+        Unencrypted communications & Configuration File Search & Configuration File Find and Replace \\
         \hline
-        Permissive Firewalls or iptables & InfoLeak, RCE & Network \\
+        Permissive Firewalls or iptables & DSL Configuration Search & Manual \\
         \hline
-        Privileged users & RCE & Access Control \\ [0.5ex]
+        User Readable Files & CLI Action & CLI Action \\
+        \hline
+        Privileged users & CLI Action & CLI Action \\ [0.5ex]
         \hline
     \end{tabular}
 \end{center}
@@ -94,7 +96,12 @@ cat /etc/ssh/sshd_config | grep "^PasswordAuthentication"
 cat /etc/ssh/sshd_config | grep "^PermitRootLogin"
 \end{lstlisting}
 
-We for both, we should either have no result or the setting is set to 'no', such as 'PasswordAuthentication no".
+We for both, we should either have no result or the setting is set to 'no', such as 'PasswordAuthentication no". We can
+then fix these issues with a simple sed command, such as
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+\end{lstlisting}
 
 \subsection{Encrypted Communications}
 
@@ -114,7 +121,7 @@ Checking whether communications are done over HTTPS should be done at the applic
 However, if we wish to do so, it is possible to set up firewalls using iptables to block all outbound traffic that is
 not HTTPS or SSH. If we wish to do so, we can set this with
 
-\begin{lstlisting}[style=AMMA, langugage=bash]
+\begin{lstlisting}[style=AMMA, language=bash]
 iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT

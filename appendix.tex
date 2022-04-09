@@ -1,534 +1,901 @@
 \chapter{Canary Source Code}
-main.go
-\begin{lstlisting}[style=AMMA, language=go]
-/*
-Copyright \copyright 2021 David Wiles <david@wiles.fyi>
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+The source code for Canary. The full repository including install script can be found at github.com/david-wiles/canary-scala.
 
-    http://www.apache.org/licenses/LICENSE-2.0
+\medskip
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-package main
+ArgParse.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import java.nio.file.Paths
 
-import "github.com/david-wiles/canary/cmd"
+/**
+ * ArgParse provides a way to specify commands and arguments for Canary without any
+ * extra third party packages. Parsing is simple and only full flags are supported.
+ * https://stackoverflow.com/questions/2315912/best-way-to-parse-command-line-parameters
+ */
+class ArgParse {
+  val usage: String =
+    """
+      |Usage: canary [OPTIONS] [COMMAND]
+      |
+      |A general-purpose security scanner and resolver
+      |
+      |Options:
+      |    --local Path to local canary packages. Default location is ~/.canary
+      |
+      |Commands:
+      |    install  Installs new packages from the list provided
+      |    upgrade  Upgrades packages from the list provided
+      |    check    Checks security issues using the given packages
+      |
+      |Run 'canary COMMAND --help' to view more information about a command
+      |""".stripMargin
 
-func main() {
-	cmd.Execute()
+  private val repo: String = "https://canary.wiles.fyi"
+  private var local: String = Paths.get(System.getProperty("user.home"), ".canary").toString
+
+  def parse(args: List[String]): Option[Command] = {
+    if (args.isEmpty) Option(HelpCommand(usage))
+    else {
+      args match {
+        case Nil => Option(InvalidCommand(usage))
+        case "install" :: "--help" :: tail => Option(HelpCommand(InstallCommand.usage))
+        case "install" :: tail => parseInstallArgs(tail)
+        case "upgrade" :: "--help" :: tail => Option(HelpCommand(UpgradeCommand.usage))
+        case "upgrade" :: tail => parseUpgradeArgs(tail)
+        case "check" :: "--help" :: tail => Option(HelpCommand(CheckCommand.usage))
+        case "check" :: tail => parseCheckArgs(tail)
+        case "remove" :: "--help" :: tail => Option(HelpCommand(RemoveCommand.usage))
+        case "remove" :: tail => parseRemoveArgs(tail)
+        case "--help" :: tail => Option(HelpCommand(usage))
+        case string :: tail => Option(InvalidCommand("Invalid command provided: " + string))
+      }
+    }
+  }
+
+  /**
+   * Parse args used by all commands
+   *
+   * @param switch the flag found
+   * @param list   the rest of the command line arguments
+   * @param next   function to call for the next step in parsing flags
+   * @return
+   */
+  private def parsePersistentArgs(switch: String, list: List[String], next: List[String] => Option[Command]): Option[Command] = {
+    switch match {
+      case "--local" =>
+        if (list.nonEmpty) {
+          local = list.head
+          next(list.tail)
+        } else {
+          Option(InvalidCommand("Missing local directory associated with --local"))
+        }
+      case _ => Option(InvalidCommand("Invalid option provided: " + switch))
+    }
+  }
+
+  /**
+   * Parse flags used by the install command
+   *
+   * @param args command line arguments
+   * @return
+   */
+  private def parseInstallArgs(args: List[String]): Option[Command] = {
+    var packages: List[String] = List()
+    var urlString = repo
+
+    def _parse(args: List[String]): Option[Command] = {
+      args match {
+        case Nil =>
+          if (packages.nonEmpty) {
+            Option(InstallCommand(packages, urlString, local))
+          } else {
+            Option(InvalidCommand("Must provide a package to install" + sys.props("line.separator") + InstallCommand.usage))
+          }
+        case "--repo" :: url :: tail =>
+          urlString = url
+          _parse(tail)
+        case string :: tail =>
+          if (string(0) == '-') {
+            parsePersistentArgs(string, tail, _parse)
+          } else {
+            packages = string :: packages
+            _parse(tail)
+          }
+      }
+    }
+
+    _parse(args)
+  }
+
+  /**
+   * Parse flags used by the upgrade command
+   *
+   * @param args command line arguments
+   * @return
+   */
+  private def parseUpgradeArgs(args: List[String]): Option[Command] = {
+    var packages: List[String] = List()
+    var urlString = repo
+
+    def _parse(args: List[String]): Option[Command] = {
+      args match {
+        case Nil =>
+          if (packages.nonEmpty) {
+            Option(UpgradeCommand(packages, urlString, local))
+          } else {
+            Option(InvalidCommand("Must provide a package to upgrade" + sys.props("line.separator") + UpgradeCommand.usage))
+          }
+        case "--repo" :: url :: tail =>
+          urlString = url
+          _parse(tail)
+        case string :: tail =>
+          if (string(0) == '-') {
+            parsePersistentArgs(string, tail, _parse)
+          } else {
+            packages = string :: packages
+            _parse(tail)
+          }
+      }
+    }
+
+    _parse(args)
+  }
+
+  /**
+   * Parse flags used by the check command
+   *
+   * @param args command line arguments
+   * @return
+   */
+  private def parseCheckArgs(args: List[String]): Option[Command] = {
+    var packages: List[String] = List()
+    var dir: Option[String] = None
+    var autoFix = false
+    var scanOnly = false
+
+    def _parse(args: List[String]): Option[Command] = {
+      args match {
+        case Nil =>
+          if (packages.isEmpty && dir.isEmpty) {
+            Option(InvalidCommand("Must provide one of packages or directory" + sys.props("line.separator") + CheckCommand.usage))
+          } else {
+            Option(CheckCommand(packages, dir, local, autoFix, scanOnly))
+          }
+        case "--scan-only" :: tail =>
+          scanOnly = true
+          _parse(tail)
+        case "--auto-fix" :: tail =>
+          autoFix = true
+          _parse(tail)
+        case "--directory" :: path :: tail =>
+          dir = Some(path)
+          _parse(tail)
+        case string :: tail =>
+          if (string(0) == '-') {
+            parsePersistentArgs(string, tail, _parse)
+          } else {
+            packages = string :: packages
+            _parse(tail)
+          }
+      }
+    }
+
+    _parse(args)
+  }
+
+  /**
+   * Parse arguments to remove packages
+   * @param args command line arguments
+   * @return either a RemoveCommand, InvalidCommand, or HelpCommand
+   */
+  private def parseRemoveArgs(args: List[String]): Option[Command] = {
+    var packages: List[String] = List()
+
+    def _parse(args: List[String]): Option[Command] = {
+      args match {
+        case Nil =>
+          if (packages.isEmpty)
+            Option(InvalidCommand("Must provide a package to remove" + sys.props("line.separator") + RemoveCommand.usage))
+          else
+            Option(RemoveCommand(local, packages))
+        case string :: tail =>
+          if (string(0) == '-') {
+            parsePersistentArgs(string, tail, _parse)
+          } else {
+            packages = string :: packages
+            _parse(tail)
+          }
+      }
+    }
+
+    _parse(args)
+  }
 }
 
 \end{lstlisting}
 
-cmd/root.go
-\begin{lstlisting}[style=AMMA, language=go]
-/*
-Copyright \copyright 2021 David Wiles <david@wiles.fyi>
+Canary.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import scala.sys.exit
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+object Canary {
+  /**
+   * Used whenever a fatal error occurs and the program should exit immediately.
+   * @param message message to print prior to exit
+   * @return nothing
+   */
+  def fatal(message: String): Nothing = {
+    println(message)
+    exit(1)
+  }
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-package cmd
-
-import (
-	"errors"
-	"fmt"
-	"github.com/david-wiles/canary/pkg"
-	"github.com/spf13/cobra"
-	"os"
-)
-
-var (
-	autoFix bool
-	dontFix bool
-)
-
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "canary [directory]",
-	Short: "Analyze security issues with a machine, system, container, or VM",
-	Long: `Analyze security issues with a machine, system, container, or VM.
-
-If you wish to automatically fix trivial issues, run the program with --fix.
-
-It may be beneficial to combine this program with runuser. For example, if
-you will be running your systems using a user called 'dummy', you can test
-with this user by running:
-
-"sudo runuser -l dummy -c 'canary' ./tests"
-
-Each issue should reside in its own folder in the specified directory. A
-file called analyze.sh will be used to examine the system, and one called solution.sh
-will be used to auto-fix and issues present. If desired,an info.txt file can be
-provided for information about the issue and prompt.txt file can be provided to
-describe the solution.
-
-The presence of an error will be determined by the exit status of the analyze.sh
-file. If the file exits with 0, it is assumed there were no issues found, any
-other status indicates an error.
-`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			return errors.New("Directory argument is required")
-		} else if len(args) > 1 {
-			return errors.New("Unknown arguments detected")
-		}
-
-		stat, err := os.Stat(args[0])
-		if err != nil {
-			if os.IsNotExist(err) {
-				return errors.New("Directory not found: " + args[0])
-			}
-			return err
-		}
-
-		if !stat.IsDir() {
-			return errors.New("Specifed path is not a directory")
-		}
-
-		return nil
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		scanner := &pkg.CustomScanner{}
-
-		if err := scanner.Init(args[0]); err != nil {
-			panic(err)
-			return
-		}
-
-		if err := scanner.Analyze(); err != nil {
-			panic(err)
-			return
-		}
-
-		ok, err := scanner.Fix(autoFix, dontFix)
-		if err != nil {
-			panic(err)
-			return
-		}
-
-		if !dontFix && !ok {
-			// Exit with non-zero exit code if issues remain unfixed
-			os.Exit(1)
-		}
-	},
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-
-func init() {
-	rootCmd.PersistentFlags().BoolVar(&autoFix, "fix", false, "Automatically fix issues")
-	rootCmd.PersistentFlags().BoolVar(&dontFix, "scan", false, "Only scan for issues")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+  /**
+   * Entrypoint for canary
+   * @param args command line arguments
+   */
+  def main(args: Array[String]): Unit = {
+    (new ArgParse).parse(args.toList)
+      .getOrElse(InvalidCommand("Something went wrong. Please contact the maintainers of canary and include steps to replicate the issue"))
+      .run()
+  }
 }
 
 \end{lstlisting}
 
-pkg/custom.go
-\begin{lstlisting}[style=AMMA, language=go]
-package pkg
+CanaryRepository.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveInputStream}
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
+import org.apache.commons.compress.utils.IOUtils
+import sttp.client3._
 
-import (
-	"encoding/json"
-	"errors"
-	"io/fs"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"path"
-)
+import java.io.{BufferedInputStream, File, FileInputStream, FileOutputStream}
+import java.nio.file.{Files, Path, Paths}
+import java.security.MessageDigest
+import scala.io.Source
 
-type CustomScanner struct {
-	// IssueList contains all the issues detected by tests during the program's
-	// run. It is then used to propmt the user or run solution files
-	Issues IssueList
+/**
+ * CanaryRepository stores state and methods required to download and update
+ * canary packages
+ *
+ * @param domain    url for the remote canary repository
+ * @param localRoot local canary root
+ */
+class CanaryRepository(domain: String, localRoot: String) {
 
-	// The path to the root directory containing test files
-	dir string
+  private val backend = HttpURLConnectionBackend()
 
-	// Any steps detected in the root directory will be added to this list.
-	steps []string
+  /**
+   * Checks whether the specified package exists in the repository
+   *
+   * @param name name of the package. This should correspond to a tarball in the local directory
+   * @return true if package exists, false if not
+   */
+  def hasPackage(name: String, version: String): Boolean = {
+    if (version == "latest") {
+      getLatestVersionString(name) match {
+        case None => false
+        case Some(version) => Files.exists(Paths.get(localRoot, name, version))
+      }
+    } else {
+      Files.exists(Paths.get(localRoot, name, version))
+    }
+  }
+
+  /**
+   * Verify the downloaded checksum against the tarball
+   *
+   * @param tarball  the tarball file
+   * @param checksum the checksum file
+   * @return true if checksum matches, false if not
+   */
+  def verifyPackage(tarball: File, checksum: File): Boolean = {
+    if (!tarball.exists() || !checksum.exists()) {
+      false
+    } else {
+      val digest = MessageDigest.getInstance("SHA-256")
+        .digest(Files.readAllBytes(tarball.toPath))
+
+      val hashBuilder = new StringBuilder()
+      for (i <- 0 until digest.length) {
+        hashBuilder.append(Integer.toString((digest(i) & 0xff) + 0x100, 16).substring(1))
+      }
+
+      val sumSource = Source.fromFile(checksum)
+      val sum = (try sumSource.mkString finally sumSource.close()).split("\\s")
+
+      if (sum.nonEmpty) {
+        sum(0).equals(hashBuilder.toString())
+      } else {
+        false
+      }
+    }
+  }
+
+  /**
+   * Get latest version of the specified package
+   *
+   * @param name The package to update
+   */
+  def updatePackage(name: String): Unit = {
+    getLatestVersionString(name) match {
+      case None => println(s"Could not update package $name: could not determine latest version")
+      case Some(version) =>
+        if (hasPackage(name, version)) {
+          println(s"Updating $name...")
+          downloadPackage(name, version)
+        } else {
+          println(s"A package named $name could not be found. Please use 'canary install $name' instead.")
+        }
+    }
+  }
+
+  /**
+   * Get a string representing the latest version for the specified package. The latest version
+   * is stored in a file called version.txt in the package's directory on the remote server.
+   *
+   * @param name The name of the package
+   * @return String representing the version, e.g. 1.0.2
+   */
+  def getLatestVersionString(name: String): Option[String] = {
+    val resp = basicRequest
+      .response(asString)
+      .get(uri"$domain/$name/version.txt")
+      .send(backend)
+
+    resp.body match {
+      case Left(err) => None
+      case Right(version) => Some(version)
+    }
+  }
+
+  /**
+   * Download the specified version of a package. If no version is specified, the latest will
+   * automatically be downloaded along with the checksum for the package
+   *
+   * @param name    name of the package to download
+   * @param version version to get. Default "latest"
+   * @return error message if the package could not be downloaded or verified
+   */
+  def downloadPackage(name: String, version: String): Unit = {
+    val pkgFilename: String = if (version.equals("latest")) {
+      getLatestVersionString(name) match {
+        case None =>
+          println(s"Unable to determine latest version for package $name. Skipping package...")
+          return
+        case Some(version) => s"${name}_$version.tar.gz"
+      }
+    } else {
+      s"${name}_$version.tar.gz"
+    }
+
+    basicRequest
+      .response(asFile(new File(Paths.get(localRoot, pkgFilename).toString)))
+      .get(uri"$domain/$name/$pkgFilename")
+      .send(backend)
+      .body match {
+      case Left(err) => println("Could not download package: " + err)
+      case Right(tar) =>
+        println("Successfully downloaded package!")
+
+        // Verify checksum
+        basicRequest
+          .response(asFile(new File(Paths.get(localRoot, s"$pkgFilename.sum").toString)))
+          .get(uri"$domain/$name/$pkgFilename.sum")
+          .send(backend)
+          .body match {
+          case Left(err) => println("Could not download checksum to verify package: " + err)
+          case Right(sum) =>
+            println("Successfully downloaded checksum!")
+
+            if (!verifyPackage(tar, sum)) {
+              println(s"Checksum verification unsuccessful. Try downloading the package and verifying manually from $domain")
+            } else {
+              println("Checksum verification successful.")
+              println(untarPackage(localRoot, tar)
+                .getOrElse("Successfully extracted package into " + localRoot))
+            }
+
+            // Clean up files
+            tar.delete()
+            sum.delete()
+            println("Deleted archive files.")
+        }
+    }
+  }
+
+  /**
+   * Extract a downloaded package tarball into the proper folder in the same directory. If the name of
+   * the tarball is pkg_2.1.1.tar.gz, the files will be extracted into pkg/2.1.1/...
+   *
+   * @param root the canary package root
+   * @param file the tarball
+   * @return if any exceptions are caught, they will be returned as a string
+   */
+  def untarPackage(root: String, file: File): Option[String] = {
+    try {
+      val inputStream = new TarArchiveInputStream(
+        new GzipCompressorInputStream(
+          new BufferedInputStream(
+            new FileInputStream(
+              file
+            )
+          )
+        )
+      )
+      var entry: TarArchiveEntry = inputStream.getNextTarEntry
+      while (entry != null) {
+        val outputPath = Paths.get(root, entry.getName)
+        if (entry.isDirectory) {
+          Files.createDirectories(outputPath)
+        } else {
+          Files.createDirectories(outputPath.getParent)
+          IOUtils.copy(inputStream, new FileOutputStream(outputPath.toFile))
+        }
+
+        entry = inputStream.getNextTarEntry
+      }
+
+      inputStream.close()
+
+      None
+    } catch {
+      case e: Throwable => Some(e.getMessage)
+    }
+  }
+}
+\end{lstlisting}
+
+CheckCommand.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import Canary.fatal
+
+import scala.collection.mutable.ListBuffer
+
+/**
+ * CheckCommand gathers canary tasks and executes them
+ * @param packages  canary packages to analyze
+ * @param directory directory to analyze. Optional
+ * @param localPath local canary root
+ * @param autoFix   indicates issues found by tasks should be fixed without a prompt
+ * @param scanOnly  indicates that the user should not be prompted to fix issues. Overrides autoFix
+ */
+case class CheckCommand(packages: List[String],
+                        directory: Option[String],
+                        localPath: String,
+                        autoFix: Boolean,
+                        scanOnly: Boolean) extends Command {
+
+  override def run(): Unit = {
+    val tasks: ListBuffer[Task] = ListBuffer()
+
+    if (packages.isEmpty && directory.isEmpty)
+      fatal("Must provide one of directory or packages")
+
+    // Gather all tasks from the directory if one was specified
+    if (directory.nonEmpty) {
+      val dir = directory.get
+      tasks.addAll(
+        TaskBuilder.fromDir(dir)
+          .getOrElse({
+            fatal("Fatal: " + dir + " is not a directory.")
+          })
+      )
+    }
+
+    // Iterate over package list and add all tasks from the package
+    for (packageName <- packages) {
+      tasks.addAll(
+        TaskBuilder.fromPackage(localPath, packageName)
+          .getOrElse({
+            fatal("Fatal: " + packageName + " was not found. Please check your package install location or install it with 'canary install " + packageName + "'")
+          })
+      )
+    }
+
+    // Analyze each issue and fix
+    for (task <- tasks) {
+      task.doTask(autoFix, scanOnly)
+    }
+  }
 }
 
-// StepConfig stores information about a test, if set. It will be used when
-// writing Text to the terminal
-type stepConfig struct {
-	Title  string
-	Text   string
-	Prompt string
-	Severity
-}
-
-// Init will set up all tests in the scanner. The dir argument specifies
-// the root directory to search for tests and should be passed from the
-// command line
-func (c *CustomScanner) Init(dir string) (err error) {
-	c.dir = dir
-	c.steps = []string{}
-	c.Issues = IssueList{}
-
-	// Check whether the root directory is valid
-	stat, err := os.Stat(dir)
-	if err != nil {
-		return err
-	}
-	if !stat.IsDir() {
-		return errors.New("Specified path is not a directory")
-	}
-
-	files, err := ioutil.ReadDir(c.dir)
-	if err != nil {
-		return err
-	}
-
-	// Loop over directory contents and find test steps
-	for _, f := range files {
-		if f.IsDir() {
-			// Check for analyze.sh and add to list if found
-			_, err := os.Stat(path.Join(c.dir, f.Name(), "analyze.sh"))
-			if err != nil {
-				if !os.IsNotExist(err) {
-					return err
-				}
-			} else {
-				c.steps = append(c.steps, path.Join(c.dir, f.Name()))
-			}
-		}
-	}
-
-	return nil
-}
-
-// Analyze each step in the root directory and populate the IssueList
-func (c *CustomScanner) Analyze() error {
-	for _, step := range c.steps {
-		conf, err := getStepConfig(step)
-		if err != nil {
-			return err
-		}
-
-		cmd := exec.Command(path.Join(step, "analyze.sh"))
-		if err := cmd.Run(); err != nil {
-			// Check why err is nil. If not due to non-zero exit code, alert the user
-			if errors.Is(err, &fs.PathError{}) {
-				println("Could not execute the file. Make sure all permissions are set correctly for the current user")
-			} else {
-				// Look for Text files in step and copy to issue if found.
-				issueText, err := getFileText(conf.Text, path.Join(step, "info.txt"))
-				if err != nil {
-					return err
-				}
-
-				solutionText, err := getFileText(conf.Prompt, path.Join(step, "prompt.txt"))
-				if err != nil {
-					return err
-				}
-
-				// TODO custom severity levels
-				c.Issues = append(c.Issues, NewIssue(conf.Severity, conf.Title, issueText).
-					WithSolution(solutionText, customSolution(path.Join(step, "solution.sh"))))
-			}
-		}
-	}
-	return nil
-}
-
-// Fix the issues found by a scan. Analyze() must be called first to build the IssueList
-func (c *CustomScanner) Fix(autoFix, dontFix bool) (bool, error) {
-	if len(c.Issues) > 0 {
-		c.Issues.PrintIssues("Issues Detected")
-		return c.Issues.Fix(autoFix, dontFix)
-	}
-
-	c.Issues.PrintIssues("No Issues Detected")
-	return true, nil
-}
-
-// Read the step's config file if it exists. Otherwise, default settings are used
-func getStepConfig(step string) (*stepConfig, error) {
-	conf := &stepConfig{
-		path.Base(step),
-		path.Base(step),
-		path.Base(step),
-		SeverityCritical,
-	}
-
-	// Read configuration file for the step if it exists
-	stat, err := os.Stat(path.Join(step, "conf.json"))
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, err
-		}
-	} else if !stat.IsDir() {
-		f, err := os.Open(path.Join(step, "conf.json"))
-		if err != nil {
-			return nil, err
-		}
-		decoder := json.NewDecoder(f)
-		if err := decoder.Decode(conf); err != nil {
-			return nil, err
-		}
-	}
-	return conf, nil
-}
-
-// Get a file's Text or use the default string given
-func getFileText(defaultText, filepath string) (string, error) {
-	_, err := os.Stat(filepath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return defaultText, nil
-		}
-		return "", err
-	}
-
-	issueTextBytes, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return "", err
-	}
-
-	return string(issueTextBytes), nil
-}
-
-// Create a solution function using a script file with the given path
-func customSolution(path string) func() error {
-	return func() error {
-		cmd := exec.Command(path)
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-		return nil
-	}
+object CheckCommand {
+  val usage: String =
+    """
+      |Usage: canary check [OPTIONS] [PACKAGES...]
+      |
+      |Checks the system against rules defined in the specified packages
+      |
+      |Options:
+      |    --directory Custom package to use to scan system
+      |    --auto-fix  Fix issues found without prompting
+      |    --scan-only Scan for issues only and don't prompt to fix
+      |""".stripMargin
 }
 
 \end{lstlisting}
 
-pkg/issue.go
-\begin{lstlisting}[style=AMMA, language=go]
-package pkg
-
-import (
-	"fmt"
-	"github.com/fatih/color"
-	"strings"
-)
-
-type Severity int
-
-var (
-	SeverityMinor    Severity = 3
-	SeverityWarning  Severity = 2
-	SeveritySerious  Severity = 1
-	SeverityCritical Severity = 0
-)
-
-type Issue struct {
-	// If solution is not nil, then it can be fixed programmatically. Many issues
-	// will not have a solution and will not have the option to be fixed this way
-	Solution func() error
-
-	// Severity level determines messaging as well as the possibility of a fix
-	severity Severity
-
-	// Title given to the issue for representation in a list
-	title string
-
-	// Message to print to the terminal when PrintIssues is called. Explains the
-	// issue and its severity. messageStyle is used to render the issue
-	message string
-
-	// If the issue has a programmatic solution, the user will be prompted to fix
-	// it with the string stored in prompt. promptStyle will be used to render
-	prompt string
+Command.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+/**
+ * A Command is any action that can be run by canary. It has an associated action which
+ * should be initiated by the run() method.
+ */
+trait Command {
+  def run(): Unit
 }
 
-type IssueList []*Issue
-
-// PrintIssues will iterate over an IssueList and call each Issue's Render() and
-// RenderTitle functions. These will be printed directly to the terminal instead
-// of being returned as a string
-func (list IssueList) PrintIssues(header string) {
-	color.White(header)
-	for _, issue := range list {
-		issue.RenderTitle()
-	}
-	color.White("\n")
+case class HelpCommand(output: String) extends Command {
+  override def run(): Unit = println(output)
 }
 
-// Fix will fix all issues in an IssueList as long as autofix is true
-// and a solution exists. If there is not a solution, then the user
-// is simply prompted with directions to fix the issue
-func (list IssueList) Fix(autoFix, dontFix bool) (bool, error) {
-	resolved := true
-
-	for _, issue := range list {
-		if issue.Solution != nil && !dontFix {
-			if autoFix {
-				if err := issue.Solution(); err != nil {
-					return false, err
-				}
-			} else {
-				ok, err := issue.PromptFix()
-				if err != nil {
-					return false, err
-				}
-				if !ok {
-					resolved = false
-				}
-			}
-		} else {
-			resolved = false
-		}
-	}
-	return resolved, nil
-}
-
-// RenderInfo will print the issue's info string
-func (issue Issue) RenderInfo() {
-	color.White(issue.message)
-}
-
-// RenderTitle will print the issue's title
-func (issue Issue) RenderTitle() {
-	switch issue.severity {
-	case SeverityCritical:
-		color.HiMagenta(issue.title)
-	case SeveritySerious:
-		color.Red(issue.title)
-	case SeverityWarning:
-		color.Yellow(issue.title)
-	case SeverityMinor:
-		color.White(issue.title)
-	}
-}
-
-// Prompts the user to fix the issue and calls the solution function if they choose
-// to fix it. If there is no programmatic solution, a prompt may still be printed
-// but a user input will not be anticipated
-func (issue Issue) PromptFix() (bool, error) {
-
-	if len(issue.prompt) == 0 {
-		return false, nil
-	}
-
-	if issue.Solution != nil {
-		color.White(issue.prompt + "\n" + "Do you wish to fix these Issues? [Y/n]")
-
-		var input string
-		_, err := fmt.Scanln(&input)
-		if err != nil {
-			if err.Error() == "unexpected newline" {
-				input = ""
-			} else {
-				return false, err
-			}
-		}
-
-		// If the user does not enter n or N, fix this issue
-		if strings.ToLower(input) != "n" {
-			if err := issue.Solution(); err != nil {
-				return false, err
-			}
-			return true, nil
-		}
-
-	} else {
-
-		color.White(issue.prompt + "\n" + "(This issue must be fixed manually)")
-		return false, nil
-	}
-
-	return false, nil
-}
-
-// MinorIssue will generate an Issue with minor severity
-func MinorIssue(title, message string) *Issue {
-	return &Issue{
-		severity: SeverityMinor,
-		message:  message,
-		title:    title,
-	}
-}
-
-// WarningIssue will generate an Issue with warning severity
-func WarningIssue(title, message string) *Issue {
-	return &Issue{
-		severity: SeverityWarning,
-		message:  message,
-		title:    title,
-	}
-}
-
-// SevereIssue will generate an Issue with severe severity
-func SevereIssue(title, message string) *Issue {
-	return &Issue{
-		severity: SeveritySerious,
-		message:  message,
-		title:    title,
-	}
-}
-
-// CriticalIssue will generate an Issue with critical severity
-func CriticalIssue(title, message string) *Issue {
-	return &Issue{
-		severity: SeverityCritical,
-		message:  message,
-		title:    title,
-	}
-}
-
-// NewIssue is a factory function which will create an issue with the specified severity
-func NewIssue(severity Severity, title, message string) *Issue {
-	switch severity {
-	case SeverityCritical:
-		return CriticalIssue(title, message)
-	case SeveritySerious:
-		return SevereIssue(title, message)
-	case SeverityWarning:
-		return WarningIssue(title, message)
-	default:
-		return MinorIssue(title, message)
-	}
-}
-
-// WithSolution will add the given solution and message to an Issue
-func (issue *Issue) WithSolution(prompt string, solution func() error) *Issue {
-	issue.prompt = issue.message + "\n" + prompt
-	issue.Solution = solution
-	return issue
+case class InvalidCommand(message: String) extends Command {
+  override def run(): Unit = Canary.fatal(message)
 }
 
 \end{lstlisting}
+
+InstallCommand.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import java.nio.file.{Files, Paths}
+
+/**
+ * InstallCommand is used to install packages to the local canary root
+ * @param packages  list of packages to install
+ * @param domain       url of remote canary repository
+ * @param localPath path to local canary root
+ */
+case class InstallCommand(packages: List[String], domain: String, localPath: String) extends Command {
+  override def run(): Unit = {
+    // Ensure canary root exists
+    if (!Files.exists(Paths.get(localPath)))
+      Files.createDirectories(Paths.get(localPath))
+
+    // Download packages
+    val repo = new CanaryRepository(domain, localPath)
+    for (name <- packages) {
+      name.split('@') match {
+        case Array(pkg, version) => repo.downloadPackage(pkg, version)
+        case Array(pkg) => repo.downloadPackage(pkg, "latest")
+      }
+    }
+  }
+}
+
+object InstallCommand {
+  val usage: String =
+    """
+      |Usage: canary install [OPTIONS] [PACKAGES...]
+      |
+      |Installs packages to the local system from a remote repository
+      |
+      |Options:
+      |    --repo URL for the repository to pull from
+      |""".stripMargin
+}
+
+\end{lstlisting}
+
+RemoveCommand.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import java.io.File
+import java.nio.file.Paths
+
+case class RemoveCommand(packageRoot: String, packages: List[String]) extends Command {
+  override def run(): Unit = {
+    // Delete the file or directory recursively
+    def deleteRecursively(result: Boolean, file: File): Boolean = {
+      if (!file.isDirectory)
+        !(file.exists && !file.delete) && result
+      else
+        file.listFiles.foldLeft(result)(deleteRecursively) && file.delete()
+    }
+
+    for (pkg <- packages) {
+      val pkgPath = pkg.split("@") match {
+        case Array(name, version) => Paths.get(packageRoot, name, version)
+        case Array(name) => Paths.get(packageRoot, name)
+      }
+
+      if (deleteRecursively(result = true, new File(pkgPath.toString)))
+        println(s"Removed package $pkg")
+      else
+        println(s"Unable to remove package $pkg")
+    }
+  }
+}
+
+object RemoveCommand {
+  val usage: String =
+    """
+      |Usage: canary remove [OPTIONS] [PACKAGES...]
+      |
+      |Removes packages from the local system
+      |
+      |""".stripMargin
+}
+
+\end{lstlisting}
+
+Task.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import java.nio.file.{Files, Paths}
+import scala.io.Source
+import scala.io.StdIn.readLine
+
+/**
+ * A Task is a single action that canary should perform during the CheckCommand run.
+ * This action should at least provide a way to scan the system for some issue and
+ * include a description of the issue. It may also optionally provide a way to fix
+ * the issue programmatically.
+ *
+ * These are built from canary packages and are specified by a config file in
+ * each child directory of the package. The config file can contain:
+ *
+ * "analyze": the path to the shell file to run to analyze the issue the task describes
+ * "solution": path to the shell file to fix the issue if it exists
+ * "description": a string describing the task
+ */
+trait Task {
+  def doTask(autoFix: Boolean, skipFix: Boolean): Unit
+}
+
+object Task {
+  /**
+   * Create a task from the files in the directory at location
+   *
+   * @param location a directory inside a canary package
+   * @return
+   */
+  def create(location: String): Task = {
+    val configPath = Paths.get(location, "config")
+    if (Files.exists(configPath)) {
+      new ScriptTask(location)
+    } else {
+      EmptyTask(location)
+    }
+  }
+}
+
+/**
+ * A properly formatted task will be created as a ScriptTask, which includes scripts to run
+ * to analyze and fix issues
+ *
+ * @param location the filename of the task's directory
+ */
+class ScriptTask(location: String) extends Task {
+  private var analyzeFilename: Option[String] = None
+  private var solutionFilename: Option[String] = None
+  private var description: String = location
+
+  private val source = Source.fromFile(Paths.get(location, "config").toFile)
+  for (line <- source.getLines())
+    line.split("=", 2) match {
+      case Array("analyze", value) => analyzeFilename = Some(value)
+      case Array("solution", value) => solutionFilename = Some(value)
+      case Array("description", value) => description = value
+    }
+  source.close()
+
+
+  def doTask(autoFix: Boolean, skipFix: Boolean): Unit = {
+    if (analyzeFilename.isEmpty) {
+      println(s"Cannot perform task $location: analyze file is not specified. Skipping...")
+      return
+    }
+
+    val analyzeProcess = new ProcessBuilder(Paths.get(location, analyzeFilename.get).toString)
+      .start()
+
+    if (analyzeProcess.waitFor() != 0) {
+      println(Console.RED + "[FAIL] " + Console.WHITE + description)
+
+      // Check if all conditions are met before running the solution file. The command must:
+      // 1: not be run with --scan-only
+      // 2: contain an executable file called solution.sh
+      // 3: either be used with --auto-fix or user answered yes on prompt
+      if (!skipFix && solutionFilename.isDefined && (autoFix || promptFix())) {
+        println("Attempting to fix issue...")
+        val fixProcess = new ProcessBuilder(Paths.get(location, solutionFilename.get).toString)
+          .start()
+        if (fixProcess.waitFor() != 0) {
+          println(Console.MAGENTA + "Solution file exited with non-zero status. You may need to fix this issue another way." + Console.WHITE)
+        } else {
+          println("Solution file exited successfully. You may want to run canary again to verify the fix.")
+        }
+      }
+    } else {
+      println(Console.GREEN + "[PASS] " + Console.WHITE + description)
+    }
+  }
+
+  private def promptFix(): Boolean = {
+    while (true) {
+      // Prompt user until they enter a y or n
+      println("Attempt to fix this issue? [y/n]")
+      val input = readLine()
+      if (input.nonEmpty) {
+        if (input.equals("n") || input.equals("N")) {
+          return false
+        } else if (input.equals("y") || input.equals("Y")) {
+          return true
+        }
+      }
+    }
+    false
+  }
+}
+
+// A task will require at minimum an analyze file and a description. If these can't be resolved then
+// an empty task is created to alert the user that the task is invalid and will not run.
+case class EmptyTask(location: String) extends Task {
+  override def doTask(autoFix: Boolean, skipFix: Boolean): Unit = {
+    println(
+      s"""
+         |Unable to initialize task at $location. If this is a package, please contact the package's maintainers.
+         |If this is a custom scan, make sure an analyze.sh and description.txt file exist in the directory for this task.
+         |""".stripMargin)
+  }
+}
+\end{lstlisting}
+
+TaskBuilder.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import java.io.File
+import java.nio.file.{Files, Paths}
+import scala.collection.mutable.ListBuffer
+
+/**
+ * TaskBuilder provides methods to create lists of tasks for Canary from a directory or package
+ */
+object TaskBuilder {
+  /**
+   * Creates a ListBuffer containing tasks using the given directory
+   *
+   * @param dir path to the directory
+   * @return the tasks contained in the specified directory
+   */
+  def fromDir(dir: String): Option[ListBuffer[Task]] = {
+    val directory = new File(dir)
+    if (directory.exists && directory.isDirectory) {
+      val tasks: ListBuffer[Task] = ListBuffer()
+      for (file <- directory.listFiles if file.isDirectory) {
+        tasks += Task.create(file.getAbsolutePath)
+      }
+      Some(tasks)
+    } else {
+      None
+    }
+  }
+
+  /**
+   * Creates a buffer of tasks from a package name. If no version is specified, then the
+   * latest is used. The packages are stored in the canary directory in two levels: the
+   * first level is the name of the package, and the second level is the version of the
+   * package. By listing the packages in the second directory and choosing the version
+   * with the highest number we use the latest package
+   *
+   * @param root    the canary package sources root
+   * @param pkgName name of the package to gather tasks from, formatted as pkg@version
+   * @return list of the tasks contained in the package
+   */
+  def fromPackage(root: String, pkgName: String): Option[ListBuffer[Task]] = {
+    val pkgDir = pkgName.split('@') match {
+      case Array(name, version) => Paths.get(root, name, version)
+      case Array(name) =>
+        if (Files.exists(Paths.get(root, name))) {
+          val version = latestInstalledVersion(new File(Paths.get(root, name).toString).listFiles.map(f => f.getName))
+          Paths.get(root, name, version)
+        } else {
+          Paths.get(root, name)
+        }
+    }
+    fromDir(pkgDir.toString)
+  }
+
+  /**
+   * Get the latest version number from a list of version numbers
+   *
+   * @param versions the list of version numbers
+   * @return string representing latest package version
+   */
+  def latestInstalledVersion(versions: Array[String]): String = {
+    var latest = Array(0, 0, 0)
+    for (version <- versions) {
+      version.split('.') match {
+        case Array(major, minor, update) =>
+          if (major.toInt > latest(0) ||
+            major.toInt == latest(0) && minor.toInt > latest(1) ||
+            major.toInt == latest(0) && minor.toInt == latest(1) && update.toInt > latest(2)) {
+            latest = Array(major.toInt, minor.toInt, update.toInt)
+          }
+        case Array(major, minor) =>
+          if (major.toInt > latest(0) ||
+            major.toInt == latest(0) && minor.toInt > latest(1)) {
+            latest = Array(major.toInt, minor.toInt, 0)
+          }
+        case Array(major) =>
+          if (major.toInt > latest(0)) {
+            latest = Array(major.toInt, 0, 0)
+          }
+      }
+    }
+    latest
+      .map(v => v.toString)
+      .mkString(".")
+  }
+}
+
+\end{lstlisting}
+
+UpgradeCommand.scala
+\begin{lstlisting}[style=AMMA, language=Scala]
+import java.nio.file.{Files, Paths}
+
+/**
+ * Upgrade canary packages already installed. If the package is not found it will not be
+ * automatically installed to prevent unintentional actions on behalf of the user
+ *
+ * @param packages  list of packages to upgrade
+ * @param domain       canary remote repository
+ * @param localPath local canary root
+ */
+case class UpgradeCommand(packages: List[String], domain: String, localPath: String) extends Command {
+  override def run(): Unit = {
+    val repo = new CanaryRepository(domain, localPath)
+    for (name <- packages) {
+      name.split('@') match {
+        case Array(pkg, version) =>
+          if (Files.exists(Paths.get(localPath, pkg)))
+            repo.downloadPackage(pkg, version)
+          else
+            println(s"Package has not been installed. You can install it with 'canary install $name'")
+        case Array(pkg) =>
+          if (Files.exists(Paths.get(localPath, pkg)))
+            repo.downloadPackage(pkg, "latest")
+          else
+            println(s"Package has not been installed. You can install it with 'canary install $name'")
+      }
+    }
+  }
+}
+
+object UpgradeCommand {
+  val usage: String =
+    """
+      |Usage: canary upgrade [OPTIONS] [PACKAGES...]
+      |
+      |Upgrades packages already installed
+      |
+      |Options:
+      |    --repo URL for the repository to pull from
+      |""".stripMargin
+}
+
+\end{lstlisting}
+
+\chapter{Canary Remote Repository}
+
+The Canary repository is currently hosted at canary.wiles.fyi. This is a file server containing all canary packages,
+which canary will pull from by default. Source code can be found at github.com/david-wiles/canary-remote.
+
+Packages are stored in directories under the root as tar.gz files. These are named using the package name combined with
+an underscore and the package version. The website also includes index.html files to make browsing easier for web browsers.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{./fig/canary-remote-files.png}
+    \end{center}
+    \caption{Canary repository file structure.}
+    \label{fig7}
+\end{figure}
 
 \chapter{Docker Vagrantfile}
 
 The Docker Vagrantfile creates a VM with Docker installed using the instructions from the Docker documentation.
-This configuration is the basis for all scripts used in this work.
+This configuration is the basis for the Linux machines tested in this thesis.
 
 \begin{lstlisting}[style=AMMA, language=ruby]
 # -*- mode: ruby -*-
@@ -547,182 +914,19 @@ echo \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io
+
+sudo apt update
+sudo apt install nginx qemu-kvm libvirt-daemon-system
 SCRIPT
 
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-20.04"
   config.vm.boot_timeout = 600 # My computer is slow
   config.vm.provision "shell", inline: $install
+  config.vm.provider "virtualbox" do |vb|
+    # Enable hardware virtualization on the vm
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
+  end
 end
 
 \end{lstlisting}
-
-\chapter{Firecracker Setup}
-
-Firecracker is the VMM behind AWS Lambda. It uses KVM with a stripped-down frontend to reduce the attack surface.
-The project is open-source and can be run on any machine with a recent CPU.
-
-First, clone firecracker and build from source, or install a pre-built binary. From https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md:
-\begin{lstlisting}[style=AMMA, language=bash]
-release_url="https://github.com/firecracker-microvm/firecracker/releases"
-latest=$(basename $(curl -fsSLI -o /dev/null -w  %{url_effective} ${release_url}/latest))
-arch=`uname -m`
-curl -L ${release_url}/download/${latest}/firecracker-${latest}-${arch}.tgz \
-| tar -xz
-mv firecracker-${latest}-$(uname -m) firecracker
-arch=`uname -m`
-dest_kernel="hello-vmlinux.bin"
-dest_rootfs="hello-rootfs.ext4"
-image_bucket_url="https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/$arch"
-
-if [ ${arch} = "x86_64" ]; then
-    kernel="${image_bucket_url}/kernels/vmlinux.bin"
-    rootfs="${image_bucket_url}/rootfs/bionic.rootfs.ext4"
-elif [ ${arch} = "aarch64" ]; then
-    kernel="${image_bucket_url}/kernels/vmlinux.bin"
-    rootfs="${image_bucket_url}/rootfs/bionic.rootfs.ext4"
-else
-    echo "Cannot run firecracker on $arch architecture!"
-    exit 1
-fi
-
-echo "Downloading $kernel..."
-curl -fsSL -o $dest_kernel $kernel
-
-echo "Downloading $rootfs..."
-curl -fsSL -o $dest_rootfs $rootfs
-
-echo "Saved kernel file to $dest_kernel and root block device to $dest_rootfs."
-arch=`uname -m`
-kernel_path=$(pwd)"/hello-vmlinux.bin"
-
-if [ ${arch} = "x86_64" ]; then
-    curl --unix-socket /tmp/firecracker.socket -i \
-      -X PUT 'http://localhost/boot-source'   \
-      -H 'Accept: application/json'           \
-      -H 'Content-Type: application/json'     \
-      -d "{
-            \"kernel_image_path\": \"${kernel_path}\",
-            \"boot_args\": \"console=ttyS0 reboot=k panic=1 pci=off\"
-       }"
-elif [ ${arch} = "aarch64" ]; then
-    curl --unix-socket /tmp/firecracker.socket -i \
-      -X PUT 'http://localhost/boot-source'   \
-      -H 'Accept: application/json'           \
-      -H 'Content-Type: application/json'     \
-      -d "{
-            \"kernel_image_path\": \"${kernel_path}\",
-            \"boot_args\": \"keep_bootcon console=ttyS0 reboot=k panic=1 pci=off\"
-       }"
-else
-    echo "Cannot run firecracker on $arch architecture!"
-    exit 1
-fi
-rootfs_path=$(pwd)"/hello-rootfs.ext4"
-curl --unix-socket /tmp/firecracker.socket -i \
-  -X PUT 'http://localhost/drives/rootfs' \
-  -H 'Accept: application/json'           \
-  -H 'Content-Type: application/json'     \
-  -d "{
-        \"drive_id\": \"rootfs\",
-        \"path_on_host\": \"${rootfs_path}\",
-        \"is_root_device\": true,
-        \"is_read_only\": false
-   }"
-curl --unix-socket /tmp/firecracker.socket -i \
-  -X PUT 'http://localhost/actions'       \
-  -H  'Accept: application/json'          \
-  -H  'Content-Type: application/json'    \
-  -d '{
-      "action_type": "InstanceStart"
-   }'
-\end{lstlisting}
-
-Alternatively, you can build your own file system images and start the VM from a config file instead of using the API.
-
-To create a file system image based on alpine linux:
-\begin{lstlisting}[style=AMMA, language=bash]
-# Instructions to create a rootfs image from https://github.com/firecracker-microvm/firecracker/blob/main/docs/rootfs-and-kernel-setup.md
-dd if=/dev/zero of=rootfs.ext4 bs=1048576 count=50
-mkfs.ext4 rootfs.ext4
-mkdir /tmp/my-rootfs
-sudo mount rootfs.ext4 /tmp/my-rootfs
-sudo docker run -it --rm -v /tmp/my-rootfs:/my-rootfs alpine
-
-# Inside container
-apk add openrc
-apk add util-linux
-
-# Set up a login terminal on the serial console (ttyS0):
-ln -s agetty /etc/init.d/agetty.ttyS0
-echo ttyS0 > /etc/securetty
-rc-update add agetty.ttyS0 default
-
-# Make sure special file systems are mounted on boot:
-rc-update add devfs boot
-rc-update add procfs boot
-rc-update add sysfs boot
-
-# Then, copy the newly configured system to the rootfs image:
-for d in bin etc lib root sbin usr; do tar c "/$d" | tar x -C /my-rootfs; done
-
-# The above command may trigger the following message:
-# tar: Removing leading "/" from member names
-# However, this is just a warning, so you should be able to
-# proceed with the setup process.
-
-for dir in dev proc run sys var; do mkdir /my-rootfs/${dir}; done
-
-# All done, exit docker shell.
-exit
-
-sudo umount /tmp/my-rootfs
-\end{lstlisting}
-
-Then, start the VM. This assumes you have firecracker in your PATH.
-\begin{lstlisting}[style=AMMA, language=bash]
-set -eu
-
-# download a kernel
-[ -e ./vmlinux.bin ] || wget -q https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin
-
-TAP_DEV="fc-88-tap0"
-
-# set up the kernel boot args
-MASK_LONG="255.255.255.252"
-MASK_SHORT="/30"
-FC_IP="169.254.0.21"
-TAP_IP="169.254.0.22"
-FC_MAC="02:FC:00:00:00:05"
-
-KERNEL_BOOT_ARGS="ro console=ttyS0 noapic reboot=k panic=1 pci=off nomodules random.trust_cpu=on"
-KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} ip=${FC_IP}::${TAP_IP}:${MASK_LONG}::eth0:off"
-
-# make a configuration file
-cat <<EOF > ./vmconfig.json
-{
-  "boot-source": {
-    "kernel_image_path": "./vmlinux.bin",
-    "boot_args": "$KERNEL_BOOT_ARGS"
-  },
-  "drives": [
-    {
-      "drive_id": "rootfs",
-      "path_on_host": "./rootfs.ext4",
-      "is_root_device": true,
-      "is_read_only": false
-    }
-  ],
-  "machine-config": {
-    "vcpu_count": 2,
-    "mem_size_mib": 1024
-  }
-}
-EOF
-# start firecracker
-sudo firecracker --no-api --config-file ./vmconfig.json
-\end{lstlisting}
-
-This just starts a VM, to interact with it you will need to attach a network interface to the vmconfig.json to send
-HTTP requests or connect via SSH.
-

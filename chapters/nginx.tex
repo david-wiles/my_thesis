@@ -1,0 +1,186 @@
+\chapter{Software Example: Nginx}
+
+Nginx is a popular open-source web server. The default settings when installed through a package manager such as apt
+are good but can still be improved on by following guidelines set by the Center for Internet Security~\cite{cis_nginx}.
+Canary can be used to scan Nginx and similar programs for issues and resolve them using the methods described
+in Chapter 3.
+
+\section{Scanning with Canary}
+
+This is a selection of some issues scanned by the nginx package for canary.
+
+\begin{center}
+    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+        \hline
+        Issue & Scanning Type & Remediation Type \\ [0.5ex]
+        \hline\hline
+        Create a Nginx User & Linux Action & Linux Action \\
+        \hline
+        Rate limit connections to webserver & DSL Configuration Search & DSL Configuration Search \\
+        \hline
+        Set client body timeout & DSL Configuration Search & DSL Configuration Search \\
+        \hline
+        Verify Upstream SSL & DSL Configuration Search & Manual \\
+        \hline
+        Log access and errors in a secure location & CLI Action & CLI Action \\
+        \hline
+        Use SSL & DSL Configuration Search & DSL Configuration Search \\ [0.5ex]
+        \hline
+    \end{tabular}
+\end{center}
+
+\subsection{Setting up the Nginx User}
+
+Nginx should be run with a user created specifically for the program, just like any other daemon process. This mitigates
+the risk of privilege escalation through a bug in the software leading to a remote code execution.
+
+The user used by Nginx is defined inside the main nginx.conf file. If this file is in the default location, /etc/nginx/nginx.conf,
+we can simply use grep to determine whether this configuration exists and is set to 'nginx', such as the line below.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+grep "user nginx;" /etc/nginx/nginx.conf
+\end{lstlisting}
+
+This may give us a false positive if the administrator has set up a username other than nginx, but we can create a new user
+for nginx by using:
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo groupadd nginx
+sudo adduser --system --ingroup nginx --home /var/cache/nginx --shell /sbin/nologin nginx
+sudo sed -i 's/^user[^;]*;$/user nginx;/' /etc/nginx/nginx.conf
+\end{lstlisting}
+
+Additionally, this user's account should be locked to ensure it can only be used by the system. To check this, we can run
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo passwd -S nginx | awk '{print $7}'
+\end{lstlisting}
+
+to ensure that the output is -1. If it is not, we can remedy it by using
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo passwd -l nginx
+\end{lstlisting}
+
+Which will then lock the user's account.
+
+\subsection{Rate limiting connections per user}
+
+Rate limiting is important for a web server to reduce the load on the machine and mitigate certain types of denial-of-service
+attacks. There are many other techniques which should be used to mitigate attacks, but we can configure Nginx to rate
+limit requests which will minimize the impact on upstream servers.
+
+Determining the specific configuration of rate limiting requires a DSL parser for Nginx configuration files. However, we
+can check whether the configuration exists in any .conf file by using
+
+\begin{lstlisting}[style=AMMA, language=bash]
+grep -ir limit_req /etc/nginx | wc -l
+\end{lstlisting}
+
+And checking whether the result is more than 0. Without a DSL parser for nginx, however, we will not be able to fix the
+issue precisely. There exist parsers which can read an Nginx file and generate a JSON payload representing the file or
+vice-versa, so a similar program could be used to modify that representation without the JSON output step.
+
+We could add a 'limit\_req\_zone' at the top level of the 'http' directive along with 'limit\_req'
+statements in each 'location' directive we find, but this method would not be precise. With our hypothetical Nginx
+configuration parser, we could read and modify the configuration with
+
+\begin{lstlisting}[style=AMMA, language=bash]
+conf-parser add http limit_req_zone='$binary_remote_addr zone=one:10m rate=1r/s;'
+conf-parser add location ... limit_req='zone=one burst=5;'
+\end{lstlisting}
+
+\subsection{Set Connection Timeout}
+
+Setting the client body read timeout will have similar effects to rate limiting requests. A malicious client attacking the server
+could open a connection without sending data in the body of a request which would reduce the number of real connections
+the server could keep open. There also other similar configurations available in the ngx\_http\_core\_module
+which could be used to mitigate certain attacks on the server, such as the client\_max\_body\_size which limits the amount
+of data nginx will read from a single request.
+
+The analysis and remediation of this issue is almost identical to that of the rate limiting issue and the same limitation
+arises without a nginx configuration parser. We can use grep to determine if the configuration is set anywhere, but we are unable
+to determine if it is set correctly and fix the issue properly.
+
+\subsection{Verify Upstream SSL}
+
+Nginx should always verify SSL for upstream proxies even if the server is on the local machine, such as in a Docker container,
+but especially if the upstream servers are on other machines. This ensures that the request is routed to a trusted server
+and there has been no middleman attacks on the request.
+
+To determine if upstream SSL certs are checked for any server, we can use
+
+\begin{lstlisting}[style=AMMA, language=bash]
+if [ $(grep -ir proxy_pass /etc/nginx | wc -l) -ne 0 ]
+then
+  if [ $(grep -ir proxy_ssl_certificate /etc/nginx | wc -l) -eq 0 ]
+  then
+    exit 1
+  fi
+fi
+\end{lstlisting}
+
+Which will exit with an error code if a proxy\_pass statement is used but there is no proxy\_ssl\_certificate statement.
+This issue would need to be fixed manually even if we had our hypothetical nginx conf parser since the specific certs for
+the upstream servers would need to be installed in a secure location.
+
+
+\subsection{Ensure Access and Error Logging is Enabled}
+
+Access and error logs are a crucial part of the devops cycle since it allows engineers to be alerted of issues in real time
+and can help when finding the source of errors. On Nginx, it is important to ensure that logs are set to info level, are
+rotated on the organization's desired schedule, and are sent to a central location for analysis and integration with
+alert systems. This can be determined using the following set of commands.
+
+\begin{lstlisting}[style=AMMA, language=bash]
+# Check that access and error logs are enabled. We want to find statements uncommented and set to info
+grep -ir error_log /etc/nginx
+grep -ir access_log /etc/nginx
+
+# Check that log files are compressed and rotated on a schedule
+cat /etc/logrotate.d/nginx
+
+# Check that a syslog server is set up
+grep -ir syslog /etc/nginx
+\end{lstlisting}
+
+Remedying these issues properly would require a nginx configuration parser, however, we can fix simple issues using sed.
+For example, if our log setting is on 'warn' instead of 'info', we could fix this with
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sed -i 's|error_log /var/log/nginx/error.log warn|error_log /var/log/nginx/error.log info|;
+\end{lstlisting}
+
+It would be more precise to fix this issue with a parser that was aware of the nginx context, and it is not possible to
+fix more specific issues with log files without it.
+
+\subsection{Use SSL and redirect HTTP to HTTPS}
+
+SSL ensures that communication between the client and server remains encrypted for the duration of transmission. This
+ensures privacy for users and mitigates against many man-in-the-middle attacks. We can quickly check whether any SSL
+certificates are installed on Nginx by running
+
+\begin{lstlisting}[style=AMMA, language=bash]
+grep -ir ssl_certificate /etc/nginx
+\end{lstlisting}
+
+If this fails to return any lines then the Nginx setup is not using SSL for any hosts. However, this still does not ensure
+that every domain is serving requests with HTTPS. We need an Nginx configuration parser to ensure that every server or
+location has an appropriate SSL cert.
+
+We can also check if any host is redirecting HTTP to HTTPS with a similar grep command
+
+\begin{lstlisting}[style=AMMA, language=bash]
+grep -ir "return 301 https://$host$request_uri;" /etc/nginx
+\end{lstlisting}
+
+Similar to the last issue, this will not ensure that the configuration is set up properly if the test passes.
+
+\subsection{Restarting Nginx}
+
+After making any changes to an Nginx configuration setting, it is necessary to restart the Nginx processes. This can be
+done gracefully with systemd using the command
+
+\begin{lstlisting}[style=AMMA, language=bash]
+sudo systemctl reload nginx
+\end{lstlisting}
