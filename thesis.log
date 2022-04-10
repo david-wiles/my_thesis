@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.1) (preloaded format=pdflatex 2022.3.26)  9 APR 2022 17:40
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.1) (preloaded format=pdflatex 2022.3.26)  9 APR 2022 20:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -840,7 +840,7 @@ Chapter 2.
 
 
 ]
-<./fig/Canary Flowchart.drawio.png, id=580, 1556.81625pt x 1448.41125pt>
+<./fig/Canary Flowchart.drawio.png, id=590, 1556.81625pt x 1448.41125pt>
 File: ./fig/Canary Flowchart.drawio.png Graphic file (type png)
 <use ./fig/Canary Flowchart.drawio.png>
 Package pdftex.def Info: ./fig/Canary Flowchart.drawio.png  used on input line 
@@ -1387,7 +1387,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 15--16
 
 
 ]
-<./fig/Updating software.drawio.png, id=704, 1177.39874pt x 816.04875pt>
+<./fig/Updating software.drawio.png, id=714, 1177.39874pt x 816.04875pt>
 File: ./fig/Updating software.drawio.png Graphic file (type png)
 <use ./fig/Updating software.drawio.png>
 Package pdftex.def Info: ./fig/Updating software.drawio.png  used on input line
@@ -1549,7 +1549,7 @@ Chapter 6.
 
 
 ]
-<./fig/Docker application nesting.drawio.png, id=784, 635.37375pt x 755.82375pt
+<./fig/Docker application nesting.drawio.png, id=794, 635.37375pt x 755.82375pt
 >
 File: ./fig/Docker application nesting.drawio.png Graphic file (type png)
 <use ./fig/Docker application nesting.drawio.png>
@@ -1563,7 +1563,7 @@ has been already used, duplicate ignored
                                                   \__shipout_drop_firstpage_...
 l.41 
       <./fig/Docker application nesting.drawio.png>] [33] [34]
-<./fig/Docker Socket.drawio.png, id=802, 1869.98625pt x 1056.94875pt>
+<./fig/Docker Socket.drawio.png, id=812, 1869.98625pt x 1056.94875pt>
 File: ./fig/Docker Socket.drawio.png Graphic file (type png)
 <use ./fig/Docker Socket.drawio.png>
 Package pdftex.def Info: ./fig/Docker Socket.drawio.png  used on input line 102
@@ -1885,7 +1885,7 @@ Package xcolor Warning: Incompatible color definition on input line 108.
 Package xcolor Warning: Incompatible color definition on input line 109.
 
 [45]
-<./fig/KVM IO.drawio.png, id=920, 1267.73625pt x 1117.17375pt>
+<./fig/KVM IO.drawio.png, id=930, 1267.73625pt x 1117.17375pt>
 File: ./fig/KVM IO.drawio.png Graphic file (type png)
 <use ./fig/KVM IO.drawio.png>
 Package pdftex.def Info: ./fig/KVM IO.drawio.png  used on input line 124.
@@ -1973,7 +1973,7 @@ Package xcolor Warning: Incompatible color definition on input line 182.
 Package xcolor Warning: Incompatible color definition on input line 183.
 
 [48]
-<./fig/gVisor.drawio.png, id=969, 966.61125pt x 939.51pt>
+<./fig/gVisor.drawio.png, id=979, 966.61125pt x 939.51pt>
 File: ./fig/gVisor.drawio.png Graphic file (type png)
 <use ./fig/gVisor.drawio.png>
 Package pdftex.def Info: ./fig/gVisor.drawio.png  used on input line 196.
@@ -2271,12 +2271,12 @@ Package xcolor Warning: Incompatible color definition on input line 317.
 
  (chapters/conclusion.tex
 Chapter 8.
-) [54
+[54
 
 
 
 
-] [55] (thesis.bbl [56
+]) [55] (thesis.bbl [56
 
 
 
@@ -14172,7 +14172,7 @@ Package xcolor Warning: Incompatible color definition on input line 877.
 
 [72]
 Appendix B.
-<./fig/canary-remote-files.png, id=1940, 307.1475pt x 441.90094pt>
+<./fig/canary-remote-files.png, id=1950, 307.1475pt x 441.90094pt>
 File: ./fig/canary-remote-files.png Graphic file (type png)
 <use ./fig/canary-remote-files.png>
 Package pdftex.def Info: ./fig/canary-remote-files.png  used on input line 889.
@@ -14453,13 +14453,13 @@ Package natbib Warning: There were undefined citations.
 (chapters/security_scanning.aux) (chapters/nginx.aux) (chapters/native_os.aux)
 (chapters/docker.aux) (chapters/libvirt.aux) (chapters/conclusion.aux))
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: A005D38E709C337FA3101386A79E4BEE;17151.
+(rerunfilecheck)             Checksum: 7462C04106F695F09A214D6E65A45F9F;17489.
  ) 
 Here is how much of TeX's memory you used:
- 20741 strings out of 478584
- 346638 string characters out of 2854216
- 1337750 words of memory out of 3000000
- 37243 multiletter control sequences out of 15000+600000
+ 20745 strings out of 478584
+ 346706 string characters out of 2854216
+ 1337753 words of memory out of 3000000
+ 37245 multiletter control sequences out of 15000+600000
  514261 words of font info for 102 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  83i,12n,91p,482b,2535s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -14469,9 +14469,9 @@ Here is how much of TeX's memory you used:
 /ucrr8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Progr
 am Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files/MiKTeX/fonts
 /type1/urw/times/utmri8a.pfb>
-Output written on thesis.pdf (88 pages, 942742 bytes).
+Output written on thesis.pdf (88 pages, 944700 bytes).
 PDF statistics:
- 2265 PDF objects out of 2487 (max. 8388607)
- 1259 named destinations out of 1440 (max. 500000)
- 780 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2277 PDF objects out of 2487 (max. 8388607)
+ 1261 named destinations out of 1440 (max. 500000)
+ 796 words of extra memory for PDF output out of 10000 (max. 10000000)
 
