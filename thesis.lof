@@ -1,7 +1,7 @@
-\contentsline {figure}{\numberline {2.1}{\ignorespaces High-level overview of Canary program execution.}}{7}{figure.2.1}%
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Out of date software can lead to a number of different attacks. Once an attacker has determined that a system is using an exploitable version of software, they can craft a payload with input that will trigger the exploit and execute arbitrary code that will damage the system or leak information.}}{24}{figure.5.1}%
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Docker and other container runtimes depend on Linux kernel features to isolate processes. This means that the application code is entirely in user space, including the container runtime.}}{32}{figure.6.1}%
-\contentsline {figure}{\numberline {6.2}{\ignorespaces The Docker socket is the point of control for everything related to Docker containers. Access to this would enable the attacker full access to the system.}}{35}{figure.6.2}%
-\contentsline {figure}{\numberline {7.1}{\ignorespaces Device driver code required for external devices contributes significantly to the attack surface of a hypervisor.}}{46}{figure.7.1}%
-\contentsline {figure}{\numberline {7.2}{\ignorespaces gVisor functions as a layer between LXC and the Linux kernel.}}{49}{figure.7.2}%
-\contentsline {figure}{\numberline {B.1}{\ignorespaces Canary repository file structure.}}{73}{figure.1.B.1}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces High-level overview of Canary program execution.}}{45}{figure.2.1}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Out of date software can lead to a number of different attacks. Once an attacker has determined that a system is using an exploitable version of software, they can craft a payload with input that will trigger the exploit and execute arbitrary code that will damage the system or leak information.}}{46}{figure.5.1}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Docker and other container runtimes depend on Linux kernel features to isolate processes. This means that the application code is entirely in user space, including the container runtime.}}{47}{figure.6.1}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces The Docker socket is the point of control for everything related to Docker containers. Access to this would enable the attacker full access to the system.}}{48}{figure.6.2}%
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Device driver code required for external devices contributes significantly to the attack surface of a hypervisor.}}{49}{figure.7.1}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces gVisor functions as a layer between LXC and the Linux kernel.}}{50}{figure.7.2}%
+\contentsline {figure}{\numberline {B.1}{\ignorespaces Canary repository file structure.}}{67}{figure.1.B.1}%

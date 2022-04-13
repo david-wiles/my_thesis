@@ -1,6 +1,8 @@
+
 \chapter{Docker Considerations}
 
 This chapter will examine security considerations for a system using Linux containers, specifically Docker.
+
 
 \section{Introduction}
 
@@ -29,10 +31,10 @@ These can be read in greater detail on the Linux namespaces man page~\cite{Linux
 provide the basis for containers themselves and are critical to the security of containers.
 
 \begin{figure}[h]
+    \caption{Docker and other container runtimes depend on Linux kernel features to isolate processes. This means that the application code is entirely in user space, including the container runtime.}
     \begin{center}
         \includegraphics[width=0.5\textwidth]{./fig/Docker application nesting.drawio.png}
     \end{center}
-    \caption{Docker and other container runtimes depend on Linux kernel features to isolate processes. This means that the application code is entirely in user space, including the container runtime.}
     \label{fig3}
 \end{figure}
 
@@ -65,26 +67,30 @@ others that are used by other platforms and may be made necessary due to platfor
 we will evaluate the configuration needed to set up Docker as well as display how to check whether these parameters are
 properly set.
 
-\begin{center}
-    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
-        \hline
-        Issue & Scanning Type & Remediation Type \\ [0.5ex]
-        \hline\hline
-        Docker Socket Access & CLI Action & Configuration File Search and Replace or Manual Action \\
-        \hline
-        Docker Volumes & ClI Action & CLI Action \\
-        \hline
-        AppArmor and seccomp & CLI Action & Manual \\
-        \hline
-        Docker network setup & CLI Action & CLI Action \\ [0.5ex]
-        \hline
-    \end{tabular}
-\end{center}
+\begin{table}
+    \caption{Scanning and remediation for Docker issues}
+    \begin{center}
+        \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+            \hline
+            Issue                & Scanning Type & Remediation Type \\ [0.5ex]
+            \hline\hline
+            Docker Socket Access & CLI Action    & Configuration File Search and Replace or Manual Action \\
+            \hline
+            Docker Volumes       & ClI Action    & CLI Action                                             \\
+            \hline
+            AppArmor and seccomp & CLI Action    & Manual                                                 \\
+            \hline
+            Docker network setup & CLI Action    & CLI Action \\ [0.5ex]
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
 
 \section{Securing the Docker Socket}
 
 The daemon is the entry point to the container runtime and the containers themselves, so any process which can access
-the socket has control over the entire Docker system.  We will also want to ensure that each container uses its own
+the socket has control over the entire Docker system. We will also want to ensure that each container uses its own
 namespace and that the namespace is sufficiently restrictive.
 
 \subsection{Importance of the Docker socket}
@@ -97,16 +103,16 @@ the identity of the connection. It is easy to check whether users can read the d
 exposed to the network it is more difficult to determine whether it is secure.
 
 \begin{figure}[h]
+    \caption{The Docker socket is the point of control for everything related to Docker containers. Access to this would enable the attacker full access to the system.}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/Docker Socket.drawio.png}
     \end{center}
-    \caption{The Docker socket is the point of control for everything related to Docker containers. Access to this would enable the attacker full access to the system.}
     \label{fig4}
 \end{figure}
 
 We can check whether the current user has access to the docker socket by simply running
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker ps
 \end{lstlisting}
 
@@ -123,7 +129,7 @@ systems or users. These steps are outlined in Docker's documentation~\cite{docke
 
 We can check if the docker socket is exposed over the network with
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sudo ps aux | grep -E 'dockerd.*?-H.*?tcp://' | wc -l
 \end{lstlisting}
 
@@ -131,14 +137,14 @@ This checks the currently running dockerd process to see if it was started with 
 be greater than one. If we have started the daemon listening over tcp, we also want to verify tls certificates. This
 can be checked by running a similar command:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sudo ps aux | grep -E 'dockerd.*?--tlsverify | wc -l
 \end{lstlisting}
 
 This vulnerability can be fixed by generating tls certificates and specifying their path in the command line arguments
 for docker. These instructions are taken from Docker's documentation.
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 openssl genrsa -aes256 -out ca-key.pem 4096
 openssl req -new -x509 -days 365 -key ca-key.pem -sha256 -out ca.pem
 openssl genrsa -out key.pem 4096
@@ -158,6 +164,7 @@ dockerd -H tcp://0.0.0.0:2376 --tlsverify --tlsacert=ca.pem --tlscert=server-cer
 The client certificates should be distributed to trusted machines and proper access control settings should be enforced
 to protect them. The daemon should not be exposed over tcp without these parameters, even if it is on a private network.
 
+
 \section{Securing Docker Volumes}
 
 Docker volume misconfiguration can pose a threat to a system two ways and could lead to denial-of-service or info leak
@@ -172,14 +179,14 @@ the machine.
 Docker containers by default have an associated volume with a 10Gb size limit. However, standalone volumes will not have
 a default limit and so should be configured as needed. To check if a specific volume has a size limit set, use
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sudo docker volume inspect [volume] -f '{{ .Options }}' | grep size | wc -l
 \end{lstlisting}
 
 Depending on which storage driver the volume uses, we may not be able to limit its size, so new volumes and containers
 should use storage drivers which support this feature. To create a new volume and attach it to a container, one should use
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker volume create --driver local --opt type=tmpfs --opt device=tmpfs --opt o=size=100m test-vol
 docker run -d redis:alpine --mount source=test-vol,target=/var/log/redis
 \end{lstlisting}
@@ -197,7 +204,7 @@ the files need to be read by other containers or the host. This remediation must
 but we can start Docker containers with separate volumes mounted in a separate location in the container to ensure
 that the data written is only used by that container. We could do so by using a start command such as
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker run -d --name nginx-example --mount source=nginx-logs,target=/var/log/nginx nginx:alpine
 \end{lstlisting}
 
@@ -211,21 +218,22 @@ using a sequence of commands as shown below.
 
 Partition an existing device:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 parted [device]
 \end{lstlisting}
 
 Create a docker volume on our new partition:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker volume create --driver local --opt device=:[partition mount point] [volume name]
 \end{lstlisting}
 
 Finally, we should restart the container with the new volume attached:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker run -d --mount source=[volume name],target=[mount point in container] [image]
 \end{lstlisting}
+
 
 \section{Kernel Security Features}
 
@@ -240,7 +248,7 @@ Linux namespaces enforce the separation of resources for a well-defined set of p
 necessity for containers to run without full virtualization. Unless otherwise specified, each Docker container will be
 created with its unique namespace.
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sudo lsns | grep $(sudo docker top [container name] | awk '{if (NR!=1) {print $2}}')
 \end{lstlisting}
 
@@ -265,9 +273,10 @@ whenever possible to limit the attack surface on the container when used in a pr
 
 Once we have created a new profile for a specific container, we can start the container with that profile, such as
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker run --security-opt seccomp=[path to profile] [image name]
 \end{lstlisting}
+
 
 \section{Docker Network Settings}
 
@@ -278,14 +287,14 @@ through which communication is necessary. The network used by a container can be
 Checking which networks are used by a container can be checked using the Docker client. This will give us a json
 map of the connected networks and the network information.
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker inspect [container name] -f "{{ json .NetworkSettings.Networks }}"
 \end{lstlisting}
 
 If we find containers that are using the default network or are accessible by containers that are not required by the system, we
 can create a new network and attach it to the container using
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 docker network create [network name]
 docker network connect [network name] [container name]
 docker network disconnect bridge [container name]

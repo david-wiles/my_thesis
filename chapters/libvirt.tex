@@ -1,3 +1,4 @@
+
 \chapter{libvirt Host Considerations}
 
 Libvirt is the default interface used with KVM and other virtualization backends on many Linux distributions. These
@@ -45,23 +46,27 @@ VMs have been mitigated.
 
 \subsection {Overview of issues}
 
-\begin{center}
-    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
-        \hline
-        Issue & Scanning Type & Remediation Type \\ [0.5ex]
-        \hline\hline
-        Libvirt audits & CLI Action & CLI Action \\
-        \hline
-        Secure Physical Storage & CLI Action & Manual \\
-        \hline
-        Encrypt Storage Pools & Configuration File Search & Manual \\
-        \hline
-        Disable unused external devices & N/A & Manual \\
-        \hline
-        Avoid Untrusted VM Images & N/A & Manual \\ [0.5ex]
-        \hline
-    \end{tabular}
-\end{center}
+\begin{table}
+    \caption{Scanning and remediation for libvirt issues}
+    \begin{center}
+        \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+            \hline
+            Issue                           & Scanning Type             & Remediation Type \\ [0.5ex]
+            \hline\hline
+            Libvirt audits                  & CLI Action                & CLI Action       \\
+            \hline
+            Secure Physical Storage         & CLI Action                & Manual           \\
+            \hline
+            Encrypt Storage Pools           & Configuration File Search & Manual           \\
+            \hline
+            Disable unused external devices & N/A                       & Manual           \\
+            \hline
+            Avoid Untrusted VM Images       & N/A                       & Manual \\ [0.5ex]
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
 
 \section{KVM Host Considerations}
 
@@ -75,13 +80,13 @@ analyze the VMs events to identify anomalies.
 
 We can check if audits are enabled on the system by running
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 cat /etc/libvirt/libvirtd.conf | grep '^audit_level'
 \end{lstlisting}
 
 We should see an entry in the file for audit\_level which is not commented. If we are not auditing the system, we can enable it with
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sudo echo "audit_level=2" | sudo tee -a /etc/libvirt/libvirtd.conf > /dev/null
 sudo systemctl restart libvirtd
 \end{lstlisting}
@@ -102,7 +107,7 @@ same device.
 We can check the guest OS's storage settings by using virsh. We want to check that the guests do not have access to
 entire devices and the host is not using file system labels in the fstab file.
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 for pool in $(virsh pool-list --type disk | tail -n +3 | awk '{print $1}'); do
     virsh pool-info pool
 done
@@ -120,10 +125,10 @@ as USB devices. Depending on system requirements this may be necessary for a spe
 increase the attack surface significantly and should be avoided.
 
 \begin{figure}[h]
+    \caption{Device driver code required for external devices contributes significantly to the attack surface of a hypervisor.}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/KVM IO.drawio.png}
     \end{center}
-    \caption{Device driver code required for external devices contributes significantly to the attack surface of a hypervisor.}
     \label{fig5}
 \end{figure}
 
@@ -163,7 +168,7 @@ support for additional IO devices, it works very similar to a QEMU virtual machi
 or via command line. To start a simple Firecracker VM, only a Linux kernel and a file system image are required after
 Firecracker is installed on a system with KVM enabled.
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 cat <<EOF > ./vmconfig.json
 {
   "boot-source": {
@@ -192,13 +197,12 @@ the host machine~\cite{gvisor_docs}. The use of gVisor with containers instead o
 performance than a fully virtualized setup through KVM while minimizing the security drawbacks of a container-only system.
 
 \begin{figure}[h]
+    \caption{gVisor functions as a layer between LXC and the Linux kernel.}
     \begin{center}
         \includegraphics[width=0.5\textwidth]{./fig/gVisor.drawio.png}
     \end{center}
-    \caption{gVisor functions as a layer between LXC and the Linux kernel.}
     \label{fig6}
 \end{figure}
-
 
 \subsection{Secure VM Image Storage}
 
@@ -212,13 +216,14 @@ profiles are set up, the images can be considered secured. We can check this alo
 
 We can check the security policies on libvirtd by using
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sudo cat /etc/apparmor.d/usr.sbin.libvirtd
 \end{lstlisting}
 
 Libvirtd is the daemon process enabling the creation of VMs on Linux machines with libvirt installed. The AppArmor policies
 on libvirtd are considered relatively permissive, but strict policies are automatically created for the guest VM which
 enforce the separation of the guest VM and host OS.
+
 
 \section{Guest VM Considerations}
 
@@ -236,14 +241,14 @@ paper.
 
 To examine the networks on a host machine, we can use
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 virsh net-list
 \end{lstlisting}
 
 If the network configured allows private communication between guests, we should create a new network for each VM and
 add the guest to the new network.
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 # Detach the guest from a network interface
 virsh detach-interface [VM] [network type] --live
 # Create a new network for this guest
@@ -287,7 +292,7 @@ a volume using a secret key associated with the UUID.
 
 We should always be sure to initialize the VM with an encrypted storage device, such as with
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 virsh attach-disk --config [vm name] [storage xml definition]
 \end{lstlisting}
 
@@ -310,7 +315,7 @@ system and create an image of it for the organization's use.
 Once a system has been configured to meet some security standard, we can create a new VM image based on the system
 using
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 virt-install \
   --name [vm name] \
   --cdrom [path to iso] \

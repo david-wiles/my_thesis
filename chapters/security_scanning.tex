@@ -1,41 +1,48 @@
+
 \chapter{Security Scanning and Remediation Patterns}
 
 The tasks created to scan and fix security issues in software can be reduced to a number of similar patterns. Actions
 used to scan for software issues can be reduced to the following groups:
 
-\begin{center}
-    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
-        \hline
-        Action & Can Be Automated & Needs Only Unix Tools  \\ [0.5ex]
-        \hline\hline
-        Software CLI interaction & Yes & Yes \\
-        \hline
-        Configuration File Search & Yes & Depends on Software \\
-        \hline
-        XML/JSON/YAML File Parse & Yes & No \\
-        \hline
-        Unix Tools Action & Yes & Yes \\ [0.5ex]
-        \hline
-    \end{tabular}
-\end{center}
+\begin{table}
+    \caption{Overview of scanning approaches}
+    \begin{center}
+        \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+            \hline
+            Action                    & Can Be Automated & Needs Only Unix Tools  \\ [0.5ex]
+            \hline\hline
+            Software CLI interaction  & Yes              & Yes                   \\
+            \hline
+            Configuration File Search & Yes              & Depends on Software   \\
+            \hline
+            XML/JSON/YAML File Parse  & Yes              & No                    \\
+            \hline
+            Unix Tools Action         & Yes              & Yes \\ [0.5ex]
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
 
 Likewise, issue remediation can be reduced into the following groups:
 
-\begin{center}
-    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
-        \hline
-        Action & Can Be Automated & Needs Only Unix Tools  \\ [0.5ex]
-        \hline\hline
-        Software CLI Action & Yes & No \\
-        \hline
-        Configuration File Find and Replace & Yes & Yes \\
-        \hline
-        Manual Remediation & No & No \\
-        \hline
-        XML/JSON/YAML File Update & Yes & No \\ [0.5ex]
-        \hline
-    \end{tabular}
-\end{center}
+\begin{table}
+    \caption{Overview of redemdiation approaches}
+    \begin{center}
+        \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+            \hline
+            Action                              & Can Be Automated & Needs Only Unix Tools  \\ [0.5ex]
+            \hline\hline
+            Software CLI Action                 & Yes              & No                    \\
+            \hline
+            Configuration File Find and Replace & Yes              & Yes                   \\
+            \hline
+            Manual Remediation                  & No               & No                    \\
+            \hline
+            XML/JSON/YAML File Update           & Yes              & No \\ [0.5ex]
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
 
 Note that to fix a specific issue some automated tasks may break the system so a manual action would be preferable.
 
@@ -97,6 +104,7 @@ file would need to be parsed and checked against a list of requirements to deter
 Setting up a new program also involves configuring the system it will run on. There must be a user to run the process
 and that process may require AppArmor policies to ensure that the process can't damage other parts of the system.
 Scanning these parts of the Linux kernel would only require built-in tools.
+
 
 \section{Remediation Techniques}
 

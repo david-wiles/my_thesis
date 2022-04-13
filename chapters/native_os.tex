@@ -1,3 +1,4 @@
+
 \chapter{Security Considerations on Bare Metal}
 
 This section will discuss the configuration settings to consider when setting up a server on bare metal, including
@@ -5,23 +6,27 @@ the common attacks vectors. There are many reasons that one would use an off-the
 image can't protect the user from their own misconfiguration. We must have some mechanism for finding issues and
 fixing them to ensure that there are no holes.
 
-\begin{center}
-    \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
-        \hline
-        Issue & Scanning Type & Remediation Type \\ [0.5ex]
-        \hline\hline
-        Outdated Software & CLI Action & CLI Action \\
-        \hline
-        Unencrypted communications & Configuration File Search & Configuration File Find and Replace \\
-        \hline
-        Permissive Firewalls or iptables & DSL Configuration Search & Manual \\
-        \hline
-        User Readable Files & CLI Action & CLI Action \\
-        \hline
-        Privileged users & CLI Action & CLI Action \\ [0.5ex]
-        \hline
-    \end{tabular}
-\end{center}
+\begin{table}
+    \caption{Scanning and remediation for native OS issues}
+    \begin{center}
+        \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
+            \hline
+            Issue                            & Scanning Type             & Remediation Type \\ [0.5ex]
+            \hline\hline
+            Outdated Software                & CLI Action                & CLI Action                          \\
+            \hline
+            Unencrypted communications       & Configuration File Search & Configuration File Find and Replace \\
+            \hline
+            Permissive Firewalls or iptables & DSL Configuration Search  & Manual                              \\
+            \hline
+            User Readable Files              & CLI Action                & CLI Action                          \\
+            \hline
+            Privileged users                 & CLI Action                & CLI Action \\ [0.5ex]
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
 
 \section{Software Updates and Versioning}
 
@@ -41,11 +46,11 @@ the exploit is announced to the public. To gain protection from these exploits a
 critical to update software as soon as updates are available.
 
 \begin{figure}[h]
+    \label{fig2}
+    \caption{Out of date software can lead to a number of different attacks. Once an attacker has determined that a system is using an exploitable version of software, they can craft a payload with input that will trigger the exploit and execute arbitrary code that will damage the system or leak information.}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/Updating software.drawio.png}
     \end{center}
-    \caption{Out of date software can lead to a number of different attacks. Once an attacker has determined that a system is using an exploitable version of software, they can craft a payload with input that will trigger the exploit and execute arbitrary code that will damage the system or leak information.}
-    \label{fig2}
 \end{figure}
 
 \subsection{Scanning for Available Updates}
@@ -58,19 +63,20 @@ a system vulnerable to attacks.
 
 If the system is Debian-based, one can run:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 apt update
 apt list --upgradable
 \end{lstlisting}
 
 To update repository lists and determine which packages have updates available. Then, running
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 apt upgrade -y
 \end{lstlisting}
 
 Will automatically upgrade all available packages. Of course, this should be done with care because there is no guarantee
 that the new packages will not contain breaking changes.
+
 
 \section{Remote control}
 
@@ -84,14 +90,14 @@ we will want to check the configuration file to ensure that SSH is set up to dis
 
 We can check if the current user is logged in via ssh by using:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 ps aux | grep "sshd: $(whoami)@$(who am i | awk '{print $2}')" | wc -l
 \end{lstlisting}
 
 Which will print a '1' if the current session is using ssh. We can then check whether the ssh configuration is secure
 by using:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 cat /etc/ssh/sshd_config | grep "^PasswordAuthentication"
 cat /etc/ssh/sshd_config | grep "^PermitRootLogin"
 \end{lstlisting}
@@ -99,7 +105,7 @@ cat /etc/ssh/sshd_config | grep "^PermitRootLogin"
 We should either have no result or the setting is set to 'no', such as 'PasswordAuthentication no". We can
 then fix these issues with a simple sed command, such as:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
 \end{lstlisting}
 
@@ -121,7 +127,7 @@ Checking whether communications are done over HTTPS should be done at the applic
 However, if we wish to do so, it is possible to set up firewalls using iptables to block all outbound traffic that is
 not HTTPS or SSH. If we wish to do so, we can set this with
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
@@ -142,6 +148,7 @@ To ensure that ssh is enabled and enforced on a system, the following steps shou
     \item Disable password authentication. Passwords should never be used for authentication of a user over ssh. This can be disabled by editing the /etc/ssh/sshd\_config file. Additional measures can be taken when editing this file, such as preventing port forwarding or root logins.
 \end{enumerate}
 
+
 \section{Network Security and Firewall Configuration}
 
 \subsection{Importance of Firewalls}
@@ -158,6 +165,7 @@ We can check the iptables configuration programmatically but the needs of each o
 Therefore, it is not feasible to determine programmatically whether the configuration is an issue without knowledge of
 the system requirements. However, we can still check whether firewall rules are set in place and give the user a warning
 if nothing is configured.
+
 
 \section{Reduce User Privileges to a Minimum}
 
@@ -181,7 +189,7 @@ security issues, and prevent any damage from occurring if a process is compromis
 
 As an exmpale, if a system is using Nginx for a reverse proxy we can check the permissions on the log files with
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 test -r /var/log/nginx/access.log && echo 'readable'
 \end{lstlisting}
 
@@ -190,13 +198,13 @@ finds an interesting log file, it would be simple to send the file contents back
 analyze later. This issue could be resolved by reducing the permissions on the file or by removing the user's membership
 from a certain group. If the user was in a group called logreader for example, we could remove this access by running
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 gpasswd -d [username] logreader
 \end{lstlisting}
 
 Or if we wish to reduce the file to only be readable for the file's owners:
 
-\begin{lstlisting}[style=AMMA, language=bash]
+\begin{lstlisting}[style=AMMA, language=BASH]
 chmod 600 /var/log/nginx/access.log
 \end{lstlisting}
 
@@ -225,7 +233,7 @@ intended to execute.
 
 Preventing an attacker from gaining sudo privilege is of utmost importance, so a user with sudo access should never be
 used to run long-running programs on the host system unless necessary. Canary can check whether the current user has
-sudo access or whether any processes in a list of PIDs are running with sudo privilege.  Of course, this can't be
+sudo access or whether any processes in a list of PIDs are running with sudo privilege. Of course, this can't be
 easily fixed with another script so the system administrator must address the issue. Many processes must run with sudo
 permissions to work correctly, but in most cases, we can simply create a new user with only the permissions necessary for
 the program to work.

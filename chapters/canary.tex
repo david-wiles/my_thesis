@@ -1,6 +1,8 @@
+
 \chapter{Canary: A CLI for Security}
 
 Canary is a generic security scanner and resolver meant to be extendable through the creation of independent packages.
+
 
 \section{Canary Background}
 
@@ -14,12 +16,13 @@ a command-line program and remote repository.
 
 \subsection{Inspiration}
 
-The initial inspiration for Canary came from the package manager for node, 'npm'.  Whenever the user installs new software,
+The initial inspiration for Canary came from the package manager for node, 'npm'. Whenever the user installs new software,
 npm will automatically scan the packages for vulnerabilities and generate a report for the user. The software will also
 automatically upgrade the affected packages if possible to resolve these issues. A similar program for Linux machines could
 scan a system for misconfiguration and report to the user issues which were found. If these issues could be easily
 fixed programmatically then the user could run a script to fix the issues. Although this does not guarantee the safety
 or even that the system would work, it does provide a good starting point for an engineer who is setting up a system.
+
 
 \section{Canary Implementation}
 
@@ -29,21 +32,24 @@ Canary is a CLI but a related remote repository is crucial for the program's via
 
 There are four commands included with this first version of Canary.
 
-\begin{center}
-\begin{tabular}{||p{0.2\textwidth} p{0.7\textwidth}||}
-    \hline
-    Command & Description \\ [0.5ex]
-    \hline\hline
-    Install & Installs packages from a remote repository  \\
-    \hline
-    Upgrade & Upgrades packages to their latest version \\
-    \hline
-    Remove & Removes packages from local storage \\
-    \hline
-    Check & Uses packages to check for issues and resolve them \\ [0.5ex]
-    \hline
-\end{tabular}
-\end{center}
+\begin{table}
+    \caption{Description of Canary commands}
+    \begin{center}
+        \begin{tabular}{||p{0.2\textwidth} p{0.7\textwidth}||}
+            \hline
+            Command & Description \\ [0.5ex]
+            \hline\hline
+            Install & Installs packages from a remote repository         \\
+            \hline
+            Upgrade & Upgrades packages to their latest version          \\
+            \hline
+            Remove  & Removes packages from local storage                \\
+            \hline
+            Check   & Uses packages to check for issues and resolve them \\ [0.5ex]
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
 
 With each command the option '--local' can be passed to specify the local storage for packages, otherwise the
 directory '\~/.canary' will be used. The remote repository can also be specified on the command line if the default is
@@ -54,10 +60,10 @@ On the check command, it is possible to specify a package not from the remote re
 issues without prompting the user and '--scan-only' to report issues without prompting the user to fix them.
 
 \begin{figure}[h]
+    \caption{High-level overview of Canary program execution.}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/Canary Flowchart.drawio.png}
     \end{center}
-    \caption{High-level overview of Canary program execution.}
     \label{fig1}
 \end{figure}
 
