@@ -7,7 +7,7 @@ considerations use KVM as an example, but other backends such as Xen or VirtualB
 
 \subsection{Guidelines and Considerations}
 
-The first step to setting up a server which will host KVM guests is to ensure that general guidelines for linux machines
+The first step when setting up a server hosting KVM guests is to verify if general guidelines for Linux machines
 have been followed. A list of common issues can be found in chapter three of this paper. However, there are some
 additional considerations when KVM is in use, especially if the code on the guest should not be trusted such as in a
 public cloud environment. Most of the additional considerations are focused on the additional devices which may be used
@@ -20,28 +20,28 @@ determining the most secure system configuration~\cite{redhatcustomerservice}.
 
 \subsection{KVM Performance}
 
-Virtualization today relies heavily on KVM in the linux kernel. Most cloud providers will use this software in order
+Virtualization today relies heavily on KVM in the Linux kernel. Most cloud providers will use this software in order
 to create and manage virtual machines, although they may use proprietary software to manage the virtualization frontend.
 If the CPU has hardware virtualization enabled then KVM uses hardware virtualization to accomplish
 the virtualization of an operating system. This has the benefit of separating the entire guest OS from the host OS
 without much of the performance drawbacks of software virtualization. However, it is important to note that even with
-hardware acceleration KVM is less performant than linux containers, as shown by Chae, Lee, and Lee~\cite{ChaeMinSu2017Apco}.
+hardware acceleration KVM is less performant than Linux containers, as shown by Chae, Lee, and Lee~\cite{ChaeMinSu2017Apco}.
 Therefore, a KVM-based environment should be chosen for the security benefits whenever the performance drawback is
 acceptable.
 
-On a machine hosting VM's, special attention must be paid to the IO operations allowed by the guest machines since this
+On a machine hosting VMs, special attention must be paid to the IO operations allowed by the guest machines since this
 is the only part of the VM which must be processed by the host OS. Default settings may be acceptable depending on the
 virtual machine monitor used but should still be verified by the administrator.
 
 \subsection {Comparision to Container-Based Environments}
 
-Use of a virtual machines for a shared-tenant environment like a public cloud is preferable to a container-based
-environment. Albakri, Shanmugam, Samy, Idris, and Ahmed outline several risk assesment considerations for an
+In a shared-tenant environment, the use of virtual machines is preferred to the use of containers.
+Albakri, Shanmugam, Samy, Idris, and Ahmed outline several risk assessment considerations for an
 organization looking to move assets to a public cloud. They found that the responsibility for security in a cloud
-computing environment is shifted to a the cloud provider in a public cloud, and an organization looking to shift
-resources to this environment should take this into consideration when evaluating security risks~\cite{AlbakriSameerHasan2014Sraf}.
+computing environment is shifted to the cloud provider in a public cloud, and any organization looking to shift
+resources to this environment should consider this when evaluating security risks~\cite{AlbakriSameerHasan2014Sraf}.
 Due to this, a cloud provider looking to sell its resources should ensure that all possible risks of attacks between
-VM's have been mitigated.
+VMs have been mitigated.
 
 \subsection {Overview of issues}
 
@@ -67,11 +67,11 @@ VM's have been mitigated.
 
 \subsection{Set Up libvirt Audits}
 
-Detailed log files are essential to investigating errors which occur on production systems, but can also be helpful when
+Detailed log files are essential to investigating errors that occur on production systems, but can also be helpful when
 investigating security issues. As recommended by RedHat, usage of auvirt can help by recording all events that happen
 during operation. In public cloud environments, this should be combined with logging of events relating to the user's
 use of the system configuration. For example, any changes to networking should be logged, which could then be used to
-analyze the VM's events to identify anomalies.
+analyze the VMs events to identify anomalies.
 
 We can check if audits are enabled on the system by running
 
@@ -96,10 +96,10 @@ machine does not use file system labels to identify the file systems in the fsta
 
 It is more secure to grant a guest access to a partition instead of an entire device. A partition
 can be resized or moved as needed, something not possible with a single drive. Additionally, the storage device can be
-shared between many guests and partitions will be cleared and reused as needed without affecting other partitions on the
+shared between many guests, and partitions will be cleared and reused as needed without affecting other partitions on the
 same device.
 
-We can check if the guest OS's storage settings by using virsh. We want to check that the guests do not have access to
+We can check the guest OS's storage settings by using virsh. We want to check that the guests do not have access to
 entire devices and the host is not using file system labels in the fstab file.
 
 \begin{lstlisting}[style=AMMA, language=bash]
@@ -127,7 +127,7 @@ increase the attack surface significantly and should be avoided.
     \label{fig5}
 \end{figure}
 
-Since this paper focuses on security considerations in cloud environments, we will not discuess the steps needed to
+Since this paper focuses on security considerations in cloud environments, we will not discuss the steps needed to
 secure physical devices and instead study the steps taken to use KVM without support for these devices.
 
 In a public cloud, there is no need to enable any external devices unless it is a business requirement. The vast
@@ -138,13 +138,13 @@ machine monitors built around the concept of stripping the VMM down to only what
 
 Firecracker, developed by Amazon for AWS Lambda, is probably the most widely-used example of this today. This VMM
 replaces QEMU and reduces the attack surface significantly by omitting any device drivers for external devices. gVisor,
-developed by Google for its App Engine product on GCP, is an example of a similar software which accomplishes the same
-goal in a different way. gVisor is more similar to container software as it does not utilize KVM or virtualization.
+developed by Google for its App Engine product on GCP, is an example of a similar software that accomplishes the same
+goal differently. gVisor is more similar to container software as it does not utilize KVM or virtualization.
 However, it does create a sandboxed execution environment by implementing a 'user-space kernel' which provides a layer
-between each guest container and the linux kernel itself through which the guest's system calls are made.
+between each guest container and the Linux kernel itself through which the guest's system calls are made.
 
 Both of these approaches isolate the guest code from the host's kernel, but in doing so execute far more kernel code
-than a simple linux process on the host machine would~\cite{firecracker_gvisor}. This means that although the host
+than a simple Linux process on the host machine would~\cite{firecracker_gvisor}. This means that although the host
 will now be more protected from traditional malware, there will be more opportunities for an unknown kernel bug to impact
 the host and steps should be taken accordingly to protect the host.
 
@@ -152,22 +152,22 @@ the host and steps should be taken accordingly to protect the host.
 
 QEMU is a widely-known and used frontend for KVM virtual machines. However, QEMU has been the source of many bugs which could
 lead to remote code execution and therefore may not be the most secure choice in a production environment~\cite{qemu_escape}.
-It attempts to emulate as many device drivers as possible so that a virtual machine can function as similarly to a native machine as
-possible. This does greatly increase the attack surface since the majority of these devices would not be needed in a
+It attempts to emulate as many device drivers as possible so that a virtual machine can function similarly to a native machine.
+This does greatly increase the attack surface since the majority of these devices would not be needed in a
 server environment.
 
 Firecracker, developed for AWS, addresses these issues by only supporting the bare minimum IO devices needed for a server.
 This means that it does not even implement a full keyboard driver. Firecracker is purely optimized for server workloads,
 especially serverless workloads as it boasts a < 125ms startup time~\cite{firecracker_home}. Other than its lack of
 support for additional IO devices, it works very similar to a QEMU virtual machine. It can be controlled by an HTTP api
-or via command line. To start a simple Firecracker VM, only a Linux kernel and a file system image is required after
-firecracker is installed on a system with KVM enabled.
+or via command line. To start a simple Firecracker VM, only a Linux kernel and a file system image are required after
+Firecracker is installed on a system with KVM enabled.
 
 \begin{lstlisting}[style=AMMA, language=bash]
 cat <<EOF > ./vmconfig.json
 {
   "boot-source": {
-    "kernel_image_path": "./vmlinux.bin",
+    "kernel_image_path": "./vmLinux.bin",
   },
   "drives": [
     {
@@ -185,7 +185,7 @@ sudo firecracker --no-api --config-file ./vmconfig.json
 
 \subsubsection{LXC without system calls}
 
-Google's gVisor takes an approach to sandboxing more similar to containers than VM's. gVisor functions by utilizing
+Google's gVisor takes an approach to sandboxing more similar to containers than VMs. gVisor functions by utilizing
 LXC containerization but handles the container's system calls itself instead of passing them directly to the kernel.
 This means that gVisor's 'Sentry' component is essentially the VM for the container through which they interact with
 the host machine~\cite{gvisor_docs}. The use of gVisor with containers instead of a virtual machine will lead to greater
@@ -203,9 +203,9 @@ performance than a fully virtualized setup through KVM while minimizing the secu
 \subsection{Secure VM Image Storage}
 
 VM images should be stored in a single, secure location. Libvirt stores images in /var/lib/libvirt/images by default,
-which should not be moved unless needed for a specifc reason. The images should not be accessible by any users other than the
+which should not be moved unless needed for a system requirement. The images should not be accessible by any users other than the
 ones who must read or modify them. Images stored at rest are a target for a malicious actor since injecting malicious
-code can allow an attack to remain ongoing and undetected for a long period of time similar to a traditional boot
+code can allow an attack to remain ongoing and undetected for a long time, similar to a traditional boot
 sector virus. This virus would be recreated every time a new VM is created, allowing the attacker to steal information
 from an organization for an ongoing period. As long as it is not publicly readable or writable and the relevant AppArmor
 profiles are set up, the images can be considered secured. We can check this along with the other file permission checks.
@@ -216,13 +216,13 @@ We can check the security policies on libvirtd by using
 sudo cat /etc/apparmor.d/usr.sbin.libvirtd
 \end{lstlisting}
 
-Libvirtd is the daemon process enabling the creation of VM's on Linux machines with libvirt installed. The AppArmor policies
+Libvirtd is the daemon process enabling the creation of VMs on Linux machines with libvirt installed. The AppArmor policies
 on libvirtd are considered relatively permissive, but strict policies are automatically created for the guest VM which
 enforce the separation of the guest VM and host OS.
 
 \section{Guest VM Considerations}
 
-As with a KVM host, all procedures to secure a bare metal machine should be followed when configuration a guest VM.
+As with a KVM host, all procedures to secure a bare metal machine should be followed when setting up a guest VM.
 A guest VM will likely not even know it is a VM, so it should be secured in the same way as the host. However, there are
 some considerations when configuring the guests that should be taken into account to prevent holes in the security setup.
 
@@ -230,8 +230,8 @@ some considerations when configuring the guests that should be taken into accoun
 
 A guest VM should function as if it was an independent system especially if the VM is in a public cloud. Unless the
 requirements state that the VM guests should be able to communicate, there should be no private network communication
-allowed between the guests. This simply means that guest VM's should not be attached to the same private network
-except in cases that the user wants to configure their VM's this way, however, this would be out of the scope of this
+allowed between the guests. This simply means that guest VMs should not be attached to the same private network
+except in cases where the user wants to configure their VMs this way, however, this would be out of the scope of this
 paper.
 
 To examine the networks on a host machine, we can use
@@ -253,20 +253,20 @@ virsh attach-interface [VM] [network type] [network source]
 \end{lstlisting}
 
 This will likely need to be done by an administrator in a live environment and would likely break any applications on
-the guest VM's. A better approach is to create the VM with the proper network interface from the start instead of
+the guest VMs. A better approach is to create the VM with the proper network interface from the start instead of
 retroactively modifying it.
 
 \subsection{Storage Encryption}
 
-A guest OS's storage should be encrypted whether it is stored on a physical disk partition or on a network drive. In
-both instances, the physical location of the data would likely be shared with other VM's and could be accessible by
+A guest OS's storage should be encrypted whether it is stored on a physical disk partition or a network drive. In
+both instances, the physical location of the data would likely be shared with other VMs and could be accessible by
 another machine with access to the drive. To prevent any unintentional data leak or leaks from malicious actors, the
 storage should always be encrypted whether it is at rest or in transmission, and the encryption keys should be
 stored securely.
 
 Any unencrypted data could be read easily during a man-in-the-middle attack if a network drive is used, or directly
 from the disk if an attacker has root control of the host. To check whether data will be encrypted by the kernel, we
-can examine the xml definition for the storage volume. In the following XML, the encryption tag tells libvirt to create
+can examine the XML definition for the storage volume. In the following XML, the encryption tag tells libvirt to create
 a volume using a secret key associated with the UUID.
 
 \begin{lstlisting}[style=AMMA, language=xml]
@@ -297,15 +297,15 @@ role of the VM, and certainly difficult to accomplish with incurring downtime.
 
 \subsection{Hardened VM Images}
 
-Hardened VM images are images which have been pre-configured with a set of security rules in place. Use of this type of
+Hardened VM images are images that have been pre-configured with a set of security rules in place. Use of this type of
 image can prevent many user errors since the image has been officially verified and is shared by many organizations.
 This approach is likely preferable to using a stock VM image such as the one provided by Ubuntu or RedHat but should
 still be supplemented by a security scan to ensure that the image's best practices are not out of date or misconfigured.
 
 This approach might still not be possible when working with an existing system such as a long-running guest VM.
-There also may not be an image provided which meets the requirements for an organization. If the requirements of the
+There also may not be an image provided that meets the requirements of an organization. If the requirements of the
 project dictate that a new hardened image can't be used for a guest VM, then it is possible to 'harden' the existing
-system and create an image of it for the organization's own use.
+system and create an image of it for the organization's use.
 
 Once a system has been configured to meet some security standard, we can create a new VM image based on the system
 using
@@ -318,5 +318,5 @@ virt-install \
 \end{lstlisting}
 
 This will create a copy of the current system when installed, so a blank version of the system should be used to create
-the ISO. If it is not possible to get a 'blank' version, more complex steps would be required to only copy needed files
+the ISO. If it is not possible to get a 'blank' version, more complex steps would be required to only copy necessary files
 to the ISO.

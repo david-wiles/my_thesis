@@ -63,7 +63,7 @@ One common way to configure software in Linux is through configuration files. Th
 behavior of a program and so parsing these files can help us determine what that behavior will be and whether it
 matches our requirements.
 
-These configuration files could be as simple as a key-value store, like the SSH daemon uses. It is relatively simple
+These configuration files could be as simple as a key-value store as seen in the SSH configuration file. It is relatively simple
 to use Unix Tools alone to determine whether our ssh configuration meets our requirements since a Regex search would
 reliably determine whether a certain parameter is enabled. For example, if we want to disable password authentication,
 we would search for a line such as
@@ -72,10 +72,10 @@ we would search for a line such as
 PasswordAuthentication yes
 \end{lstlisting}
 
-It is clear that this can be done with a Regex expression.
+This can be done with a regular expression.
 
-Other software may use a DSL to define configuration. These programs may have behavior too complex to define with a
-file as simple as a key-value store and would require extra syntax to concisely define its behavior. The web server
+Other software may use a DSL to define the configuration. These programs may have behavior too complex to define with a
+file as simple as a key-value store and would require extra syntax to concisely define its behavior. The webserver
 Nginx is a good example of software with a DSL used in configuration files. The .conf files may be easy for the user
 to read and understand, but a computer would be unable to track the context of the file without using special software
 to parse the file. This makes scanning configuration files with a DSL more similar to parsing XML files since it is
@@ -88,7 +88,7 @@ software projects may choose to adopt one of them as their configuration file's 
 standardization would make it much easier for other programs to interpret the files since parsers would often be
 included in the language's standard library.
 
-Despite this, scanning a configuration file which uses a markup language would not be possible without help from an
+Despite this, scanning a configuration file that uses a markup language would not be possible without help from an
 external tool. This tool could be generic, like jq, or domain-specific for the particular software. Either way, the
 file would need to be parsed and checked against a list of requirements to determine if the setup meets standards.
 
@@ -117,7 +117,7 @@ of the program's behavior without stopping and restarting the whole Docker daemo
 
 \subsection{Configuration File Find and Replace}
 
-Software which uses simple configuration files are an easy target for configuration file remediation. After scanning
+Any software that uses simple configuration files is easy target for configuration file remediation. After scanning
 the file to see if a requirement is met, we will likely be able to use a program such as sed to find the offending
 configuration and modify it.
 
@@ -130,7 +130,7 @@ The steps involved to remediate this would be
 
 \subsection{XML/JSON/YAML File Modification}
 
-Programs which use a DSL or markup language to define their behavior could also be fixed with a find and replace action,
+Programs that use a DSL or markup language to define their behavior could also be fixed with a find and replace action,
 but the specific programs used would need to include a specific program to parse and modify the markup.
 
 The steps involved with this type of configuration file would include
@@ -147,5 +147,5 @@ need to be done within a parser for the DSL.
 
 \subsection{Manual Remediation}
 
-Some isses are too complex or specific to the system to be resolved through automated means. These issues will require
+Some issues are too complex or specific to the system to be resolved through automated means. These issues will require
 an engineer to analyze the system to determine the best course of action.

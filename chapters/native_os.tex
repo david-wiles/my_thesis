@@ -1,8 +1,8 @@
 \chapter{Security Considerations on Bare Metal}
 
 This section will discuss the configuration settings to consider when setting up a server on bare metal, including
-the common attacks vectors. There are many reasons that one would use a OS image off-the-shelf, and even a secured
-image can't protect the user from their own misconfiguration. We must have some mechanism of finding issues and
+the common attacks vectors. There are many reasons that one would use an off-the-shelf OS image, and even a secured
+image can't protect the user from their own misconfiguration. We must have some mechanism for finding issues and
 fixing them to ensure that there are no holes.
 
 \begin{center}
@@ -36,9 +36,9 @@ We must be sure to apply these updates as soon as they become available. All lar
 bugs or exploits which could be used by an attacker with knowledge of their existence. A study by the RAND corporation
 examined over 200 historical zero-day vulnerabilities in commonly-used software and determined that zero-day vulnerabilities
 have an average life expectancy of 6.9 years~\cite{cdi_proquest_reports_1875964326}. Once an exploit is found and reported
-to the project's maintainers, there is generally a period between when the vulerability is fixed in a software update and
-the exploit is announced to the public. In order to gain protection from these exploits as soon as possible, it is
-critical to update software as soon as updated are available.
+to the project's maintainers, there is generally a period between when the vulnerability is fixed in a software update and
+the exploit is announced to the public. To gain protection from these exploits as soon as possible, it is
+critical to update software as soon as updates are available.
 
 \begin{figure}[h]
     \begin{center}
@@ -50,7 +50,7 @@ critical to update software as soon as updated are available.
 
 \subsection{Scanning for Available Updates}
 
-Scanning a system for software which should be updated is as simple as checking the version of installed software and
+Scanning a system for software that should be updated is as simple as checking the version of installed software and
 packages against the newest version in major trusted repositories. Upgrading most software and packages will be simple,
 but there is always the possibility of incompatible versions of packages or software which would require code changes
 and will take longer to complete. This may be the most common reason for not upgrading packages once available but leaves
@@ -69,7 +69,7 @@ To update repository lists and determine which packages have updates available. 
 apt upgrade -y
 \end{lstlisting}
 
-Will automatically upgrade all available packages. Of course, this should be done with care because there is no gurarantee
+Will automatically upgrade all available packages. Of course, this should be done with care because there is no guarantee
 that the new packages will not contain breaking changes.
 
 \section{Remote control}
@@ -89,15 +89,15 @@ ps aux | grep "sshd: $(whoami)@$(who am i | awk '{print $2}')" | wc -l
 \end{lstlisting}
 
 Which will print a '1' if the current session is using ssh. We can then check whether the ssh configuration is secure
-by using
+by using:
 
 \begin{lstlisting}[style=AMMA, language=bash]
 cat /etc/ssh/sshd_config | grep "^PasswordAuthentication"
 cat /etc/ssh/sshd_config | grep "^PermitRootLogin"
 \end{lstlisting}
 
-We for both, we should either have no result or the setting is set to 'no', such as 'PasswordAuthentication no". We can
-then fix these issues with a simple sed command, such as
+We should either have no result or the setting is set to 'no', such as 'PasswordAuthentication no". We can
+then fix these issues with a simple sed command, such as:
 
 \begin{lstlisting}[style=AMMA, language=bash]
 sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
@@ -105,10 +105,10 @@ sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_
 
 \subsection{Encrypted Communications}
 
-Any unencrypted communication is vulnerable to a man-in-the middle attack, as explained by John Richter~\cite{monkey_in_the_middle}.
-This can lead to information leak and possibly unauthorized access should any passwords be transferred. We can classify
+Any unencrypted communication is vulnerable to a man-in-the-middle attack, as explained by John Richter~\cite{monkey_in_the_middle}.
+This can lead to information leaks and possibly unauthorized access should any passwords be transferred. We can classify
 this as a vulnerability in the network or firewall of the system. All remote control of the machine should be done over
-encrypted channels, and if not then anyone who is able to intercept the packets could determine exactly what was being
+encrypted channels, and if not then anyone who can intercept the packets could determine exactly what was being
 sent to the system, including plaintext passwords.
 
 If the user is not currently logged in via SSH, the solution would be to disable whatever method was used to access the
@@ -117,7 +117,7 @@ machine should have the ability to host an SSH server daemon. However, it may be
 remote GUI system, in which case we should ensure that the communications are over a secure channel such as HTTPS and the
 authentication meets a standard set by the organization.
 
-Checking whether communications are done over HTTPS should be done at the application-level instead of at the OS level.
+Checking whether communications are done over HTTPS should be done at the application level instead of at the OS level.
 However, if we wish to do so, it is possible to set up firewalls using iptables to block all outbound traffic that is
 not HTTPS or SSH. If we wish to do so, we can set this with
 
@@ -129,16 +129,16 @@ iptables -A OUTPUT -t filter -p tcp --dport https -j ACCEPT
 iptables -A OUTPUT -t filter -p udp --dport https -j ACCEPT
 \end{lstlisting}
 
-However this will certainly break many applications using the network, which is why it is best to ensure secure communication
+However, this will certainly break many applications using the network, which is why it is best to ensure secure communication
 at the application level.
 
 \subsection{Remediation}
 To ensure that ssh is enabled and enforced on a system, the following steps should be taken:
 
 \begin{enumerate}
-    \item Install sshd. sshd should be pre-installed on most operating systems, but can be downloaded from a trusted package repository or be built from source
-    \item Start sshd on system boot. If systemctl is used, we can do this by running 'systemctl enable sshd'
-    \item Generate keys for all users. Ensure all users have generated private keys and transferred them to the server
+    \item Install sshd. Sshd should be pre-installed on most operating systems but can be downloaded from a trusted package repository or be built from source.
+    \item Start sshd on system boot. If systemctl is used, we can do this by running 'systemctl enable sshd'.
+    \item Generate keys for all users. Ensure all users have generated private keys and transferred them to the server.
     \item Disable password authentication. Passwords should never be used for authentication of a user over ssh. This can be disabled by editing the /etc/ssh/sshd\_config file. Additional measures can be taken when editing this file, such as preventing port forwarding or root logins.
 \end{enumerate}
 
@@ -163,23 +163,23 @@ if nothing is configured.
 
 \subsection{Principle of Least-Privilege}
 
-It is essential that the host machine has been set up using principles of least permissions. We hope that a malicious
+The host machine must be set up using principles of least permissions. We hope that a malicious
 guest VM or compromised container cannot escape from its process, but the host should still anticipate this possibility
 and limit the attack surface on the native operating system. A sysadmin should take care to ensure that the system is
-up-to-date and the programs running have been secured,but this can be time-consuming and error-prone to do by hand.
+up-to-date and the programs running have been secured but this can be time-consuming and error-prone to do by hand.
 By using a tool such as Canary, we can quickly evaluate a system and fix trivial errors.
 
 For example, we can check that
 
 \subsection{Leaky Files}
 
-One way that systems become compromised or secrets are leaked are from seemingly innocuous files which contain
-secrets or system information. Log files can contain information such as password in plain text or keys which could
+One way that systems become compromised or secrets are leaked is from seemingly innocuous files which contain
+secrets or system information. Log files can contain information such as passwords in plain text or keys which could
 be used to gain access to other systems. These files can be put into a list and checked by Canary by checking
 whether the user running the process can read or write to the files. This can eliminate the vast majority of trivial
 security issues, and prevent any damage from occurring if a process is compromised or an unauthorized user gains access.
 
-If a system is using Nginx for a reverse proxy for example, we can check the permissions on the log files with
+As an exmpale, if a system is using Nginx for a reverse proxy we can check the permissions on the log files with
 
 \begin{lstlisting}[style=AMMA, language=bash]
 test -r /var/log/nginx/access.log && echo 'readable'
@@ -194,7 +194,7 @@ from a certain group. If the user was in a group called logreader for example, w
 gpasswd -d [username] logreader
 \end{lstlisting}
 
-Or if we wish to reduce the file to be read only by super users
+Or if we wish to reduce the file to only be readable for the file's owners:
 
 \begin{lstlisting}[style=AMMA, language=bash]
 chmod 600 /var/log/nginx/access.log
@@ -209,27 +209,27 @@ weak points in the system's security.
 We should also consider that a user's passwords or private keys could fall into the hands of an attacker through a
 simple phish attempt. Phishing attempts are extremely common and an alarming number of people will fall victim to them,
 as shown by a study by Software World Intelligence~\cite{cdi_gale_infotrac_627280924}. Administrators should assume that
-users will at some point give up their passwords or keys, and that account could be used to find sensitive information.
+users will at some point give up their passwords or keys and that accounts could be used to find sensitive information.
 Although Canary can't detect whether a user or group should have access to a specific file, it can easily determine
 whether that file is readable and report it to the end-user.
 
 \subsection{Malicious Actors and Code Vulnerabilities}
 
-Consider a system which has an unknown zero-day vulnerability which can be exploited. For example, consider the recent
-linux kernel vulnerability CVE-2022-0185, which enables container breakout~\cite{CVE-2022-0185}. The attacker may use
+Consider a system that has an unknown zero-day vulnerability that can be exploited. For example, consider the recent
+Linux kernel vulnerability CVE-2022-0185, which enables container breakout~\cite{CVE-2022-0185}. The attacker may use
 this to gain access to the system and execute arbitrary code. However, if we make sure to reduce the permissions for
 users down to the bare minimum, we may be able to save any sensitive data from leaking and prevent the actor from
-gaining control of the system. An attack of this manner can be considered privilege escalation since the user which was
-intended to only do one thing, such as run a file server, would now be able to execute programs which it was never
-intended to.
+gaining control of the system. An attack of this manner can be considered privilege escalation since the user who was
+intended to only do one thing, such as run a file server, would now be able to execute programs they were never
+intended to execute.
 
-Preventing an attacker from gaining sudo privilege is of upmost importance, so a user with sudo access should never be
+Preventing an attacker from gaining sudo privilege is of utmost importance, so a user with sudo access should never be
 used to run long-running programs on the host system unless necessary. Canary can check whether the current user has
-sudo access or whether any processes in a list of PID's are running with sudo privilege.  Of course, this can't be
+sudo access or whether any processes in a list of PIDs are running with sudo privilege.  Of course, this can't be
 easily fixed with another script so the system administrator must address the issue. Many processes must run with sudo
-permissions to work correctly, but in most cases we can simply create a new user with only the permissions necessary for
+permissions to work correctly, but in most cases, we can simply create a new user with only the permissions necessary for
 the program to work.
 
-AppArmor or similar software should be also be utilized to minimize the damage that a malicious process can cause on a
+AppArmor or similar software should be utilized to minimize the damage that a malicious process can cause to a
 system. These profiles can be used in conjunction with a user with minimal permissions to ensure that intruders are
 prevented from accessing sensitive data.

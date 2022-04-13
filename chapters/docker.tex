@@ -1,6 +1,6 @@
 \chapter{Docker Considerations}
 
-This chapter will examine security considerations for a system using linux containers, and specifically Docker.
+This chapter will examine security considerations for a system using Linux containers, specifically Docker.
 
 \section{Introduction}
 
@@ -9,24 +9,24 @@ This chapter will examine security considerations for a system using linux conta
 This section will examine the default security settings of Docker, how they could be tailored to an individual
 deployment's needs, and what attack vectors exist when using the Docker engine. Docker is the most commonly used
 container platform in use today. The ease of use combined with lower performance overhead compared to Virtual Machines
-has led to container usage to become just as common as VM's. Although Docker is very useful in development situations
+has led to container usage to become just as common as VMs. Although Docker is very useful in development situations
 we also see its use in production systems, which will be the focus of this discussion. Docker relies on many features
 in the Linux kernel to ensure that the processes are separated from others on the same machine, but does not use any
-hardware features in the CPU like KVM or other hypervisor would be able to take advantage of.
+hardware features in the CPU like KVM or other hypervisors would be able to take advantage of.
 
 Kubernetes is a very prominent software used to orchestrate hundreds or even thousands of containers across
 multiple machines for load balancing and availability purposes. This paper however will focus on simple configuration
-practices and will not discuss K8s, although it is worthy of mention due to its widespread use.
+practices and will not discuss K8s, although the principles still apply to containers running on K8s.
 
 \subsection{Performance Compared to Virtualization}
 
-Docker and other container engines are able to achieve lower performance overhead compared to virtual machines by only
+Docker and other container engines can achieve lower performance overhead compared to virtual machines by only
 containing the necessary libraries and packages for its use and depending on the host's kernel for the traditional work of
 the operating system. This creates a much larger attack surface since the entire OS is shared, although kernel features
 such as namespaces and cgroups are utilized to separate the container's processes from others on the same machine.
-Linux provides namespaces for system resources, network, processes, process communication, users, time, and domains.
-These can be read in greater detail on the linux namespaces man page~\cite{linux_namespaces_man_page}. Linux namespaces
-provides the basis for containers themselves and are critical to the security of containers.
+Linux provides namespaces for system resources, networks, processes, process communication, users, time, and domains.
+These can be read in greater detail on the Linux namespaces man page~\cite{Linux_namespaces_man_page}. Linux namespaces
+provide the basis for containers themselves and are critical to the security of containers.
 
 \begin{figure}[h]
     \begin{center}
@@ -36,15 +36,15 @@ provides the basis for containers themselves and are critical to the security of
     \label{fig3}
 \end{figure}
 
-Newer CPU technologies like Intel's VT-x help close this gap between virtualization and containers, but running a full
-OS within another OS will certainly have overhead cost compared to a native process.
+Newer CPU technologies like Intel's VT-x help close this gap between virtualization and containers but running a full
+OS within another OS will certainly have overhead costs compared to a native process.
 
 \subsection{Deployment Considerations}
 
 Docker has become the de-facto containerization solution since its inception and can be credited with the shift of
 containerization from virtualization~\cite{why_docker}. The tools provided by Docker make it very easy to create new containers, share
 images, and reproduce the systems used by others. Additionally, container orchestration technologies such as K8s
-has made adopting microservices much more attactive due to its built-in scaling and balancing.
+has made adopting microservices much more attractive due to its built-in scaling and balancing.
 
 These tools often choose sane defaults for security, but there can still be gaps in this setup. These issues are
 compounded by the fact that many developers may overwrite these defaults to make it easier to test. The same developer
@@ -55,13 +55,13 @@ When evaluating the security settings of a system using Docker, we must take not
 and its intended uses. Many developers will use Docker on their development system since it is easy to replicate a
 production environment locally, but this type of deployment does not necessarily need extra security above the default
 levels unless the system is being tested specifically for vulnerabilities. A production system hand should have the most
-restrictive settings possible and should be thoroughly evaluated for gaps in security.
+restrictive settings possible and should be thoroughly evaluated for security gaps.
 
 \subsection{Relation to Container Software}
 
-The security considerations taken by Docker to separate containers from each other as well as their host can be used as
-a good starting point for other containerization systems. Docker may be the most popular system, but there are countless
-others which are used by other platforms and may be made necessary due to platform constraints. In the following section
+The security considerations used by Docker to isolate containers from each other and their host can be used as
+a starting point for other containerization systems. Docker may be the most popular system, but there are
+others that are used by other platforms and may be made necessary due to platform constraints. In the following section,
 we will evaluate the configuration needed to set up Docker as well as display how to check whether these parameters are
 properly set.
 
@@ -85,17 +85,16 @@ properly set.
 
 The daemon is the entry point to the container runtime and the containers themselves, so any process which can access
 the socket has control over the entire Docker system.  We will also want to ensure that each container uses its own
-namespace, and that the namespace is sufficiently restrictive.
+namespace and that the namespace is sufficiently restrictive.
 
 \subsection{Importance of the Docker socket}
 
 Any process which can interact with the Docker daemon could impact any container or image on the system, so it is
 important to secure access to this UNIX socket or TCP port. If the Docker containers will reside on a single machine,
-this can be done by simply restricting access to only the user which will be running the daemon processes. If it's
+this can be done by simply restricting access to only the user who will be running the daemon processes. If it's
 required that the system must expose the daemon to the external network, the socket should be secured with TLS to ensure
-the identity of the connection. It is easy to check whether users can read the docker socket, but if the socket is
-exposed to the network it is more difficult to determine whether it is secure, and message should be shown to the user
-warning them of this issue.
+the identity of the connection. It is easy to check whether users can read the docker socket but if the socket is
+exposed to the network it is more difficult to determine whether it is secure.
 
 \begin{figure}[h]
     \begin{center}
@@ -117,11 +116,10 @@ system.
 
 \subsection{Docker socket protection}
 
-If the Docker socket is exposed to the network, then the configuration issue can be considered a network issue, but if
-not then it is relegated to user and file permissions. The unix socket requires root permissions by default, but once
-exposed to the network it may be accessed by any machine which knows the port and IP combination. To mitigate attacks,
-tlsverify should be required by the docker socket and certificates should be generated and only distributed to trusted
-systems or users. These steps are outlined in Docker's own documentation~\cite{docker_docs_tls_verify}.
+If the Docker socket is exposed to the network then additional precautions should be taken to keep it secure.
+The unix socket requires root permissions by default, but once exposed to the network it may be accessed by any machine
+which knows the port and IP combination. To mitigate attacks, tlsverify should be required by the docker socket, and certificates should be generated and only distributed to trusted
+systems or users. These steps are outlined in Docker's documentation~\cite{docker_docs_tls_verify}.
 
 We can check if the docker socket is exposed over the network with
 
@@ -138,7 +136,7 @@ sudo ps aux | grep -E 'dockerd.*?--tlsverify | wc -l
 \end{lstlisting}
 
 This vulnerability can be fixed by generating tls certificates and specifying their path in the command line arguments
-for docker. These instructions are taken from Docker's own documentation.
+for docker. These instructions are taken from Docker's documentation.
 
 \begin{lstlisting}[style=AMMA, language=bash]
 openssl genrsa -aes256 -out ca-key.pem 4096
@@ -167,18 +165,18 @@ attacks.
 
 \subsection{File System Size Constraints}
 
-The first is through lack of size constraints. A ontainer using a volume without size constraints could fill up the
-entire filesystem with data, preventing other users from writing data and potentially crippling the IO performance of
+The first is through lack of size constraints. A container using a volume without size constraints could fill up the
+filesystem with data, preventing other users from writing data and potentially crippling the IO performance of
 the machine.
 
-Docker container by default have an associated volume with a 10Gb size limit. However, standalone volumes will not have
+Docker containers by default have an associated volume with a 10Gb size limit. However, standalone volumes will not have
 a default limit and so should be configured as needed. To check if a specific volume has a size limit set, use
 
 \begin{lstlisting}[style=AMMA, language=bash]
 sudo docker volume inspect [volume] -f '{{ .Options }}' | grep size | wc -l
 \end{lstlisting}
 
-Depending on which storage driver the volume uses, we may not be able to limit its size, so new volumes and container
+Depending on which storage driver the volume uses, we may not be able to limit its size, so new volumes and containers
 should use storage drivers which support this feature. To create a new volume and attach it to a container, one should use
 
 \begin{lstlisting}[style=AMMA, language=bash]
@@ -188,7 +186,7 @@ docker run -d redis:alpine --mount source=test-vol,target=/var/log/redis
 
 \subsection{Shared Files}
 The second way a volume could pose a threat is through shared files. A Docker volume could also be shared between the
-host or other containers. Should the shared volume be mounted at a point which contains sensitive files in the subtree,
+host or other containers. Should the shared volume be mounted at a point that contains sensitive files in the subtree,
 then these files would be visible to the other container and could potentially leak data to a malicious actor.
 
 Any threats exposed this way can be scanned in the same way that they can be scanned on the native filesystem. They can
@@ -203,27 +201,27 @@ that the data written is only used by that container. We could do so by using a 
 docker run -d --name nginx-example --mount source=nginx-logs,target=/var/log/nginx nginx:alpine
 \end{lstlisting}
 
-Which would specify that the nginx logs should be directed to the new volume containing only log files.
+Which would specify that the Nginx logs should be directed to the new volume containing only log files.
 
 \subsection{Volume issue remediation}
 One solution for both problems is to designate a separate partition for the Docker volumes to reside. This will ensure
 that a runaway container can't attack the host through the file system and no files used by the host will be accessible
 by a container. If we wish to create a new partition for each Docker container, we could automate the process by
-using a sequence of commands like shown below.
+using a sequence of commands as shown below.
 
-Create partition an existing device.
+Partition an existing device:
 
 \begin{lstlisting}[style=AMMA, language=bash]
 parted [device]
 \end{lstlisting}
 
-Create a docker volume on our new partition
+Create a docker volume on our new partition:
 
 \begin{lstlisting}[style=AMMA, language=bash]
 docker volume create --driver local --opt device=:[partition mount point] [volume name]
 \end{lstlisting}
 
-Finally, we should restart the container with the new volume attached
+Finally, we should restart the container with the new volume attached:
 
 \begin{lstlisting}[style=AMMA, language=bash]
 docker run -d --mount source=[volume name],target=[mount point in container] [image]
@@ -232,15 +230,15 @@ docker run -d --mount source=[volume name],target=[mount point in container] [im
 \section{Kernel Security Features}
 
 Containers are more susceptible to issues since the OS is not fully virtualized as it is within a hypervisor. To
-mitigate issues, linux namespaces, AppArmor profiles, and seccomp configurations should all be set up properly to
+mitigate issues, Linux namespaces, AppArmor profiles, and seccomp configurations should all be set up properly to
 allow the bare minimum features required for the container. These are all features included in the Linux kernel.
 
 \subsection {Default Protections: Namespaces and AppArmor}
 
 A container is not a jailed process but does use kernel features to sandbox applications from the rest of the system.
-Linux namespaces allow separation of resources for a well-defined set of processes, which is a
+Linux namespaces enforce the separation of resources for a well-defined set of processes, which is a
 necessity for containers to run without full virtualization. Unless otherwise specified, each Docker container will be
-created with its own namespace.
+created with its unique namespace.
 
 \begin{lstlisting}[style=AMMA, language=bash]
 sudo lsns | grep $(sudo docker top [container name] | awk '{if (NR!=1) {print $2}}')
@@ -253,12 +251,12 @@ resolution of the issue would be non-trivial.
 An analysis of container security issues by Sultan, Ahmad, and Dimitriou found that most container security
 considerations are resolved by features in the Linux kernel, chiefly namespaces and AppArmor
 settings~\cite{SultanSari2019CSIC}. They also found that protection of the container from the host itself can be achieved
-through hardware means. This shows that as long as sane defaults are not removed, security between containers or
-between the container and host are usually not an issue of concern for the user of the container.
+through hardware means. This shows that as long as sane defaults are not removed, the separation between containers and
+between a container and the host is not an area of concern for the administrator.
 
 \subsection {Seccomp settings}
 
-Each container will receive a default seccomp setup which should prevent the majority of system calls which could
+Each container will receive a default seccomp setup which should prevent the majority of system calls that could
 undermine the security of the overall system. However, this default configuration could be less permissive than
 necessary than the container needs since a container may only perform simple tasks during its operation. A technique used
 by Wan, Lo, and Xia show that we can trace the system calls used by a container and use the result to limit the seccomp
@@ -284,7 +282,7 @@ map of the connected networks and the network information.
 docker inspect [container name] -f "{{ json .NetworkSettings.Networks }}"
 \end{lstlisting}
 
-If we find containers that are using the default network or are accessible by container which are not necessary, we
+If we find containers that are using the default network or are accessible by containers that are not required by the system, we
 can create a new network and attach it to the container using
 
 \begin{lstlisting}[style=AMMA, language=bash]

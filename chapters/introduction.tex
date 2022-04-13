@@ -3,15 +3,15 @@
 \section{Current Cloud Computing Landscape}
 
 \subsection{Public Cloud and the Linux Kernel}
-A quick glance at the offerings provided by Amazon Web Services shows that web hosting in 2022 is heavily based around
+A glance at the offerings provided by Amazon Web Services shows that web hosting in 2022 is heavily based on
 virtualization.  Virtual machines are cheaper for the provider and customer, more efficient, and easier to work with.
 Entire fleets of cloud services can be created programmatically using tools such as Terraform or Chef. Additionally, after
 the introduction of Docker in 2013 containers have quickly become the preferred way to test and deploy code due to their ease
 of use.  Since there may be software from many different customers running on a single CPU concurrently, we may assume
 that this would be a major security issue.
 
-Thanks to the work by many talented developers working on KVM, LXC, and Docker, we can assume that there are a limited
-number of critical vulnerabilities in the actual virtualization layer. The majority of issue arise from misconfiguration
+Thanks to the work of many talented developers working on KVM, LXC, and Docker, we can assume that there are a limited
+number of critical vulnerabilities in the actual virtualization layer. The majority of issues arise from the misconfiguration
 of the host machine or the virtualization itself.  This may include overly-permissive rules for programs or users,
 exposed secrets, a lack of resource management, and other issues which will be discussed in this paper. Although by
 default the attack surface for these services is very large, we can use tools to detect issues and automatically fix
@@ -23,10 +23,10 @@ defining standards for system configurations. These standards may be required fo
 to ensure security, but can also provide a good starting point for a business or organization which does not have this
 compliance regulated. OpenShift, a platform provided by Red Hat, does include a compliance scanner with the service.
 This scanner will determine whether the system configuration meets the standards. Similarly, Docker, Inc. maintains
-a project on GitHub which will automatically scan a Docker setup for any issues~\cite{docker_bench_security}.
+a project on GitHub that will automatically scan a Docker setup for any issues~\cite{docker_bench_security}.
 
 These scanners can be combined with dynamic binary analyzers to determine if a program has been infected at runtime,
-such as through a specially crafted input to a library such as log4j. Choi, Park, Eom, and Chung detail a system which
+such as through a specially crafted input to a library such as log4j. Choi, Park, Eom, and Chung detail a system that
 could be used to determine the presence of malware at runtime~\cite{ChoiYoung-Hyun2014Dbaf}. Despite these protections,
 a system should always be built to withstand any attacks as much as possible through careful analysis of the system's
 configuration.
@@ -35,13 +35,13 @@ configuration.
 
 In general, an attacker may wish to achieve one of three goals when compromising a system. These goals are gaining
 control of the system, reading sensitive data, or denying access to the system. Proper configuration of the system is
-critical to preventing the attacker form achieving these goals, even if they are able to exploit one part of the system.
+critical to preventing the attacker from achieving these goals, even if they can exploit one part of the system.
 
 \subsection {InfoLeak}
-A related issue to improperly stored or hidden passwords is improperly secured sensitive data. Any data generated or
-stored by a server should be considered sensitive, since an attacker could infer a considerable amount from log files
+A related issue to improper password storage is improperly secured sensitive data. Any data generated or
+stored by a server should be considered sensitive since an attacker could infer a considerable amount from log files
 or other seemingly innocuous files. A careless setting on these log files could expose customer information or
-company secrets to an attacker, even if the attacker doesn't have root access on the machine.
+company secrets to an attacker, even if the attacker doesn't have root access to the machine.
 
 Additionally, hardware issues such as timing attacks can also lead to an attacker gaining knowledge of a system. These
 attacks are generally harder to achieve since the attack would need to involve multiple components, but can still be
@@ -49,20 +49,20 @@ mitigated by configuring the resources available to each VM or container
 
 \subsection {Denial of Service}
 Denial of service is likely the most common attack on cloud systems today. This may come in the form of ransomware,
-general degradation of service, or a distributed denial of service attack. The most well-known denial-of-service attack
+general degradation of service, or a distributed denial-of-service attack. The most well-known denial-of-service attack
 comes in the form of a network attack, where a server is flooded with requests to the point that service is degraded or
 unavailable for actual users. While this kind of attack can be mitigated through a variety of methods, they aren't
 relevant for this paper and so will not be discussed.
 
 Other forms of denial of service attacks can come from malicious guests on a host. Consider a public cloud environment
-which allows users full access to a guest VM. The malicious actor could attempt to gain control of a number of VM's on
-a single machine and overuse the host's resources to degrade performance of the other guests, especially if another
-guest is the target. This technique is also used in side-channel attacks, mentioned previously under infoleak.
+that allows users full access to a guest VM. The malicious actor could attempt to gain control of many VMs on
+a single machine and overuse the host's resources to degrade the performance of the other guests, especially if another
+guest is the target. This technique is also used in side-channel attacks, mentioned previously under InfoLeak.
 
 \subsection{Privilege Escalation}
 Privilege escalation is the act of gaining more permissions than intended on a system. Gaining control of a system is
-on of the most critical issues for a server machine since it could lead to any number of attacks. A malicous actor could
-gain control through a number of ways, but the most well-known is through remote code execution. A bug in a program,
+one of the most critical issues for a server machine since it could lead to any number of attacks. A malicious actor could
+gain control in several, but the most well-known is through remote code execution. A bug in a program,
 such as the recently discovered log4j vulnerability, can allow the attacker to execute an arbitrary code sequence
 through a carefully-crafted input~\cite{MichaelCooney2021Lfni}. Once the attacker has this capability, they could
 easily start a reverse shell with root permissions and steal information or demand a ransom to unencrypt data.
