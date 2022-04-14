@@ -4,9 +4,7 @@
 Canary is a generic security scanner and resolver meant to be extendable through the creation of independent packages.
 
 
-\section{Canary Background}
-
-\subsection{Purpose}
+\section{Purpose}
 
 My goal in creating this software was to see if a system could be examined for common vulnerabilities programmatically.
 Although there are many books written about setting up a system securely and many VM images can be found with best
@@ -14,7 +12,7 @@ practices already configured there is not a well-known all-purpose program that 
 Canary was created in an attempt to demonstrate that this void could be filled relatively simply using a combination of
 a command-line program and remote repository.
 
-\subsection{Inspiration}
+\section{Inspiration}
 
 The initial inspiration for Canary came from the package manager for node, 'npm'. Whenever the user installs new software,
 npm will automatically scan the packages for vulnerabilities and generate a report for the user. The software will also
@@ -28,11 +26,11 @@ or even that the system would work, it does provide a good starting point for an
 
 Canary is a CLI but a related remote repository is crucial for the program's viability as a security solution.
 
-\subsection{Canary Usage}
+\section{Canary Usage}
 
 There are four commands included with this first version of Canary.
 
-\begin{table}
+\begin{table}[H]
     \caption{Description of Canary commands}
     \begin{center}
         \begin{tabular}{||p{0.2\textwidth} p{0.7\textwidth}||}
@@ -59,15 +57,15 @@ On the check command, it is possible to specify a package not from the remote re
 --directory to specify the root directory of the custom package. This command also supports '--auto-fix' to fix
 issues without prompting the user and '--scan-only' to report issues without prompting the user to fix them.
 
-\begin{figure}[h]
-    \caption{High-level overview of Canary program execution.}
+\begin{figure}[H]
+    \caption{High-level overview of Canary program execution}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/Canary Flowchart.drawio.png}
     \end{center}
     \label{fig1}
 \end{figure}
 
-\subsection{Design}
+\section{Design}
 
 Canary is a command-line program written in Scala. It contains a custom argument parser which then initializes specific
 commands based on the user input. The only runtime dependencies of the project are Softwaremill's STTP for an HTTP client
@@ -87,13 +85,13 @@ run each 'analyze' file to determine if there are security issues by checking th
 exit status was not 0, then Canary will prompt the user and run any provided solution file to resolve the issues
 identified.
 
-\subsection{Canary Packages}
+\section{Canary Packages}
 
 A Canary package is a directory containing tasks. These tasks are also directories, which contain shell scripts and a
 configuration file, which should be called 'config'. This file will specify the name of any other scripts to run and
 include a description of the issue.
 
-\subsection{The Canary Repository}
+\section{The Canary Repository}
 
 Crucial to the viability of Canary as a way to automatically scan issues is a remote repository to maintain packages.
 Successful software today is dependent on a seamless way to distribute and extend itself, such as with npm. Downloading

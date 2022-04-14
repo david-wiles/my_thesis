@@ -4,9 +4,7 @@
 This chapter will examine security considerations for a system using Linux containers, specifically Docker.
 
 
-\section{Introduction}
-
-\subsection{Overview of Docker}
+\section{Overview of Docker}
 
 This section will examine the default security settings of Docker, how they could be tailored to an individual
 deployment's needs, and what attack vectors exist when using the Docker engine. Docker is the most commonly used
@@ -27,11 +25,11 @@ containing the necessary libraries and packages for its use and depending on the
 the operating system. This creates a much larger attack surface since the entire OS is shared, although kernel features
 such as namespaces and cgroups are utilized to separate the container's processes from others on the same machine.
 Linux provides namespaces for system resources, networks, processes, process communication, users, time, and domains.
-These can be read in greater detail on the Linux namespaces man page~\cite{Linux_namespaces_man_page}. Linux namespaces
+These can be read in greater detail on the Linux namespaces man page~\cite{linux_namespaces_man_page}. Linux namespaces
 provide the basis for containers themselves and are critical to the security of containers.
 
-\begin{figure}[h]
-    \caption{Docker and other container runtimes depend on Linux kernel features to isolate processes. This means that the application code is entirely in user space, including the container runtime.}
+\begin{figure}[H]
+    \caption{Component nesting with containerization}
     \begin{center}
         \includegraphics[width=0.5\textwidth]{./fig/Docker application nesting.drawio.png}
     \end{center}
@@ -67,7 +65,7 @@ others that are used by other platforms and may be made necessary due to platfor
 we will evaluate the configuration needed to set up Docker as well as display how to check whether these parameters are
 properly set.
 
-\begin{table}
+\begin{table}[H]
     \caption{Scanning and remediation for Docker issues}
     \begin{center}
         \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
@@ -102,8 +100,8 @@ required that the system must expose the daemon to the external network, the soc
 the identity of the connection. It is easy to check whether users can read the docker socket but if the socket is
 exposed to the network it is more difficult to determine whether it is secure.
 
-\begin{figure}[h]
-    \caption{The Docker socket is the point of control for everything related to Docker containers. Access to this would enable the attacker full access to the system.}
+\begin{figure}[H]
+    \caption{The Docker socket is the entrypoint for all Docker actions}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/Docker Socket.drawio.png}
     \end{center}
@@ -142,28 +140,14 @@ sudo ps aux | grep -E 'dockerd.*?--tlsverify | wc -l
 \end{lstlisting}
 
 This vulnerability can be fixed by generating tls certificates and specifying their path in the command line arguments
-for docker. These instructions are taken from Docker's documentation.
+for docker.
 
 \begin{lstlisting}[style=AMMA, language=BASH]
-openssl genrsa -aes256 -out ca-key.pem 4096
-openssl req -new -x509 -days 365 -key ca-key.pem -sha256 -out ca.pem
-openssl genrsa -out key.pem 4096
-openssl req -subj "/CN=$HOST" -sha256 -new -key server-key.pem -out server.csr
-echo subjectAltName = DNS:$HOST,IP:10.10.10.20,IP:127.0.0.1 >> extfile.cnf
-openssl x509 -req -days 365 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem -extfile extfile.cnf
-openssl genrsa -out key.pem 4096
-openssl req -subj '/CN=client' -new -key key.pem -out client.csr
-echo extendedKeyUsage = clientAuth > extfile-client.cnf
-openssl x509 -req -days 365 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile extfile-client.cnf
-rm -v client.csr server.csr extfile.cnf extfile-client.cnf
-chmod -v 0400 ca-key.pem key.pem server-key.pem
-chmod -v 0444 ca.pem server-cert.pem cert.pem
 dockerd -H tcp://0.0.0.0:2376 --tlsverify --tlsacert=ca.pem --tlscert=server-cert.pem --tlskey=server-key.pem
 \end{lstlisting}
 
 The client certificates should be distributed to trusted machines and proper access control settings should be enforced
 to protect them. The daemon should not be exposed over tcp without these parameters, even if it is on a private network.
-
 
 \section{Securing Docker Volumes}
 

@@ -61,7 +61,7 @@ The Linux Foundation (2022).
 \newblock namespaces - overview of Linux namespaces.
 \newblock {\em The Linux Foundation\/}.
 
-\bibitem[\protect\citeauthoryear{Docker, Inc.}{Docker, Inc.}{2022}]{docker_docs_tls_verifye}
+\bibitem[\protect\citeauthoryear{Docker, Inc.}{Docker, Inc.}{2022}]{docker_docs_tls_verify  }
 Docker, Inc. (2022).
 \newblock Protect the Docker daemon socket
 \newblock {\em Docker, Inc.\/}.

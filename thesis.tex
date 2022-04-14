@@ -6,7 +6,7 @@
 \usepackage{amsfonts}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage[page,title,toc]{appendix}
+\usepackage[header,title,titletoc]{appendix}
 %\renewcommand{\appendixname}{Appendix}
 \usepackage{framed}
 \usepackage{subfig}
@@ -48,24 +48,26 @@
 
 \maketitle
 
-\newpage
 \begin{center}
 CANARY: AN AUTOMATED APPROACH TO SECURITY SCANNING AND REMEDIATION
 \end{center}
-\vspace{3.5in}
-
+\vspace{3.25in}
+\thispagestyle{empty}
 \begin{flushleft}
 \noindent\begin{tabular}{l}
 \makebox[2in]{\hrulefill} \\
 Defense Date \\ \\
 %\vspace{.25in}
-\makebox[3.5in]{\hrulefill}\\
+\makebox[0ex][l]{Dr. Guangming Xing} \\
+\makebox[3.5in][l]{\hrulefill} \\
 Committee Chair \\ \\
 %\vspace{.25in}
-\makebox[3.5in]{\hrulefill}\\
+\makebox[0ex][l]{Dr. Michael Galloway} \\
+\makebox[3.5in][l]{\hrulefill} \\
 Committee Member  \\ \\
 %\vspace{.25in}
-\makebox[3.5in]{\hrulefill}\\
+\makebox[0ex][l]{Dr. Qi Li} \\
+\makebox[3.5in][l]{\hrulefill} \\
 Committee Member \\
 \end{tabular}
 \end{flushleft}
@@ -77,6 +79,10 @@ Associate Provost for Research \& Graduate Education
 \newpage
 						% following parts are moved around to have the order of WKU example
 
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
 \begin{dedication}
 \input{dedication}
 \end{dedication}
@@ -84,17 +90,13 @@ Associate Provost for Research \& Graduate Education
 \input{acknowledgments}
 \end{acknowledgments}
 
-
 \tableofcontents
 \listoftables
 \listoffigures
 
-\begin{abstract}
-\input{abstract}
-\end{abstract}
-
 \begin{body}
 
+\vspace*{-2em}
 \input{./chapters/introduction}
 \input{./chapters/canary}
 \input{./chapters/security_scanning}
@@ -110,7 +112,11 @@ Associate Provost for Research \& Graduate Education
 \nocite{*}
 \bibliography{./References}
 \begin{appendices}
+\titleformat{\chapter}[hang]{\vspace*{-50pt}\centering\normalsize}{APPENDIX \thechapter}{1em}{\MakeUppercase}
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+\begin{spacing}{2.0}
 \input{appendix}
+\end{spacing}
 \end{appendices}
 \end{document}
 

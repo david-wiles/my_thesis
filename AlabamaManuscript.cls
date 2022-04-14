@@ -100,7 +100,7 @@
 \geometry{letterpaper}
 \geometry{textwidth=6.5in}
 \geometry{textheight=9in}
-\geometry{top=1in,left=1.5in,right=1in,bottom=1in}			% 1.0? top, bottom, and right, and 1.5? left;%
+\geometry{top=1in,left=1in,right=1in,bottom=1in}			% 1.0? top, bottom, and right, and 1.5? left;%
 
 %---- fancyhdr
 \fancyhf{}
@@ -113,19 +113,17 @@
 \setlength{\linenumbersep}{2em}
 
 %---- titlesec
-\titleformat{\chapter}[display]
-   {\centering\normalsize\bfseries}{\vspace*{0.5\baselineskip}\@chapapp\space\thechapter}{0pt}{\MakeUppercase}
-\titleformat{name=\chapter,numberless}[display]
-   {\centering\normalsize}{\vspace*{\baselineskip}}{0pt}{\MakeUppercase}
+\titleformat{\chapter}[hang]
+   {\centering\normalsize}{\thechapter}{1em}{\MakeUppercase}
 \titleformat{\section}[hang]
-   {\centering\normalsize\bfseries}{\thesection}{1em}{}
+   {\centering\normalsize}{\thesection}{1em}{}
 \titleformat{\subsection}[hang]
-   {\normalsize}{\thesubsection}{1em}{}
+   {\centering\normalsize}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}[hang]
-   {\itshape\normalsize}{\thesubsubsection}{1em}{}
+   {\centering\itshape\normalsize}{\thesubsubsection}{1em}{}
 \titleformat{\paragraph}[runin]
    {\itshape\normalsize}{\theparagraph}{1em}{}
-\titlespacing{\chapter}{0pt}{.5in}{*0}
+\titlespacing{\chapter}{0pt}{*0}{*0}
 \titlespacing{\section}{0pt}{*0}{*0}
 \titlespacing{\subsection}{0pt}{*0}{*0}
 \titlespacing{\subsubsection}{0pt}{*0}{*0}
@@ -151,18 +149,6 @@
 
 \bibliographystyle{chicago}
 
-
-%-- Preliminary pages
-
-%--
-
-%---- Blank page left intentionally
-
-%---- Blank page
-% First Fly Sheet, not considered in numbering.
-\thispagestyle{empty}
-\phantom{}
-
 %---- Title page and copyright page
 \renewcommand{\maketitle}[1]{%
    \cleardoublepage
@@ -170,7 +156,7 @@
    \phantomsection
    \vspace*{.625in}
 
-\vspace*{.625in}
+\vspace*{1in}
 
 \begin{center}
 \MakeUppercase{\ETD@title} \\
@@ -178,31 +164,29 @@
 % Leave a blank line below, to start another paragraph.
 
 % The vertical measurement below may need to be adjusted to get the next bit of text 4 in. from the top of the page.
-\vspace{1.45in}
+\vspace{1.05in}
 % Leave a blank line below, to start another paragraph.
 
 \begin{center}
-A Thesis \\
-Presented to \\
-The Faculty of the Department of Computer Science\\
-Western Kentucky University \\
-Bowling Green, Kentucky
-\end{center}
-% Leave a blank line below, to start another paragraph.
-
-% The vertical measurement below may need to be adjusted to get the next bit of text 7 in. from the top of the page.
-\vspace{1.725in}
-% Leave a blank line below, to start another paragraph.
-
-\begin{center}
-In Partial Fulfillment \\
-Of the Requirements for the Degree \\
+A Thesis submitted in partial fulfillment \\
+of the requirements for the degree \\
 Master of Science
 \end{center}
 % Leave a blank line below, to start another paragraph.
 
+% The vertical measurement below may need to be adjusted to get the next bit of text 7 in. from the top of the page.
+\vspace{1.15in}
+% Leave a blank line below, to start another paragraph.
+
+\begin{center}
+Department of Computer Science \\
+Western Kentucky University \\
+Bowling Green, Kentucky \\
+\end{center}
+% Leave a blank line below, to start another paragraph.
+
 % The vertical measurement below may need to be adjusted to get the next bit of text 9 in. from the top of the page.
-\vspace{1.05in}
+\vspace{1in}
 % Leave a blank line below, to start another paragraph.
 
 \begin{center}
@@ -213,7 +197,7 @@ By \\
 
 \end{center}
 
-
+\newpage
 
 
 }
@@ -243,45 +227,26 @@ By \\
 \renewenvironment{abstract}{%
 
 \begin{center}
-\MakeUppercase{\ETD@title}\\
+ABSTRACT \\
+\vspace{1em}
+\MakeUppercase{\ETD@title} \\
+
 \end{center}
 %\addcontentsline{toc}{section}{\normalsize\textnormal{ABSTRACT}}		%commented to remove from table of content
 \doublespacing
 
-\begin{center}
-%Month Year
- \ETD@date
-\end{center}
-
-\vspace{-3em}													% changed to -3 to be in the same line as author
-
-{\raggedright \ETD@author}  % Your name here, inside the braces.
-
-\vspace{-2em}
-
-{\raggedleft \hfill 74 Pages}  % Replace XX with the number of pages.		%replace with newer page
-
-{\raggedright Directed by: Dr. Guangming Xing, Dr. Michael Galloway, Dr. Qi Li }  % Put your thesis committee here.
-
-{\raggedright Department of Computer Science}
-
-\vspace{-2em}
-{\raggedleft \hfill Western Kentucky University}
-   %\vspace*{\baselineskip}							%commented for WKU example
 }
-
-
 
 %---- Dedication
 \newenvironment{dedication}{%
    \phantomsection
    %\addcontentsline{toc}{chapter}{DEDICATION}						%commented to remove from table of content
    %\changepage{-1in}{0in}{0in}{0in}{0in}{1in}{0in}{0in}{0in}
-   \vspace*{0.5in}
+   \vspace*{1.35in}
    \vspace*{\baselineskip}
-   \begin{center}
-      DEDICATION
-   \end{center}
+%   \begin{center}
+%      DEDICATION
+%   \end{center}
    \vspace{-\baselineskip}
    \begin{spacing}{2.0}
 }{%
@@ -294,7 +259,7 @@ By \\
    \phantomsection
    %\addcontentsline{toc}{chapter}{ACKNOWLEDGMENTS}				%commented to remove from table of content
    %\changepage{-1in}{0in}{0in}{0in}{0in}{1in}{0in}{0in}{0in}
-   \vspace*{0.5in}
+   \vspace*{-0.5in}
    \vspace*{\baselineskip}
    \begin{center}
       ACKNOWLEDGMENTS
@@ -312,10 +277,8 @@ By \\
    %\pagestyle{toccont}
    %\thispagestyle{tocstart}
    \phantomsection
-   \vspace*{0.5in}
-   \vspace*{\baselineskip}
    \begin{center}
-      CONTENTS
+      TABLE OF CONTENTS
    \end{center}
    \vspace{-\baselineskip}
    \begin{spacing}{1.0}
@@ -382,9 +345,7 @@ By \\
 %---- List of Tables
 \renewcommand{\listoftables}{%
    \phantomsection
-   %\addcontentsline{toc}{chapter}{LIST OF TABLES}				%commented to remove from table of content
-   \vspace*{0.5in}
-   \vspace*{\baselineskip}
+   \addcontentsline{toc}{chapter}{LIST OF TABLES}				%commented to remove from table of content
    \begin{center}
       LIST OF TABLES
    \end{center}
@@ -401,9 +362,7 @@ By \\
 %---- List of Figures
 \renewcommand{\listoffigures}{%
    \phantomsection
-   %\addcontentsline{toc}{chapter}{LIST OF FIGURES}				%commented to remove from table of content
-   \vspace*{0.5in}
-   \vspace*{\baselineskip}
+   \addcontentsline{toc}{chapter}{LIST OF FIGURES}				%commented to remove from table of content
    \begin{center}
       LIST OF FIGURES
    \end{center}
@@ -413,21 +372,6 @@ By \\
    \end{spacing}
    \cleardoublepage
 }
-\newcommand{\listofsymbols}{%
-   \phantomsection
-   %\addcontentsline{toc}{chapter}{LIST OF ABBREVIATIONS}				%commented to remove from table of content
-   \vspace*{0.5in}
-   \vspace*{\baselineskip}
-   \begin{center}
-      LIST OF ABBREVIATIONS
-   \end{center}
-   \vspace{-\baselineskip}
-   \begin{spacing}{2.0}
-      \input{abbreviation}
-   \end{spacing}
-   \cleardoublepage
-}
-
 
 
 
@@ -450,18 +394,18 @@ By \\
 
 
 
-\renewcommand\appendix{\par
-  \cleardoublepage
-  \setcounter{chapter}{0}%
-  \setcounter{section}{0}%
-  \setcounter{table}{0}
-  \gdef\@chapapp{\appendixname}%
-  \gdef\thechapter{\@Alph\c@chapter}
-  \renewcommand{\thetable}{A.\arabic{table}}
-  \renewcommand{\appendixtocname}{Appendix}
-  \addappheadtotoc
-  \newpage
-  }
+%\renewcommand\appendix{\par
+%  \cleardoublepage
+%  \setcounter{chapter}{0}%
+%  \setcounter{section}{0}%
+%  \setcounter{table}{0}
+%  \gdef\@chapapp{\appendixname}%
+%  \gdef\thechapter{\@Alph\c@chapter}
+%  \renewcommand{\thetable}{A.\arabic{table}}
+%  \renewcommand{\appendixtocname}{Appendix}
+%  \addappheadtotoc
+%  \newpage
+%  }
 
 %-- Body
 %--
@@ -491,8 +435,6 @@ By \\
 	\addcontentsline{toc}{chapter}{REFERENCES}
 	\cleardoublepage
    %\changepage{-1in}{0in}{0in}{0in}{0in}{1in}{0in}{0in}{0in}
-   \vspace*{0.5in}
-   \vspace*{\baselineskip}
    \begin{center}
       REFERENCES
    \end{center}

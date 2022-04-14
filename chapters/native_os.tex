@@ -6,7 +6,7 @@ the common attacks vectors. There are many reasons that one would use an off-the
 image can't protect the user from their own misconfiguration. We must have some mechanism for finding issues and
 fixing them to ensure that there are no holes.
 
-\begin{table}
+\begin{table}[H]
     \caption{Scanning and remediation for native OS issues}
     \begin{center}
         \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
@@ -45,9 +45,9 @@ to the project's maintainers, there is generally a period between when the vulne
 the exploit is announced to the public. To gain protection from these exploits as soon as possible, it is
 critical to update software as soon as updates are available.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \label{fig2}
-    \caption{Out of date software can lead to a number of different attacks. Once an attacker has determined that a system is using an exploitable version of software, they can craft a payload with input that will trigger the exploit and execute arbitrary code that will damage the system or leak information.}
+    \caption{Flowchart for attacks originating with outdated software}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/Updating software.drawio.png}
     \end{center}

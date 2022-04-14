@@ -4,49 +4,7 @@
 Libvirt is the default interface used with KVM and other virtualization backends on many Linux distributions. These
 considerations use KVM as an example, but other backends such as Xen or VirtualBox could also be used with libvirt.
 
-\section {Overview of KVM}
-
-\subsection{Guidelines and Considerations}
-
-The first step when setting up a server hosting KVM guests is to verify if general guidelines for Linux machines
-have been followed. A list of common issues can be found in chapter three of this paper. However, there are some
-additional considerations when KVM is in use, especially if the code on the guest should not be trusted such as in a
-public cloud environment. Most of the additional considerations are focused on the additional devices which may be used
-with a VM as well as IO access from the guest to the external network.
-
-KVM allows for the guest's CPU instructions to be sent directly to the processor if hardware virtualization is supported
-by the CPU. This drastically reduces the attack surface and allows us to focus on the components enabling communication between a guest
-and any external device or network. The guidelines outlined by Red Hat, Inc. are a good starting place for
-determining the most secure system configuration~\cite{redhatcustomerservice}.
-
-\subsection{KVM Performance}
-
-Virtualization today relies heavily on KVM in the Linux kernel. Most cloud providers will use this software in order
-to create and manage virtual machines, although they may use proprietary software to manage the virtualization frontend.
-If the CPU has hardware virtualization enabled then KVM uses hardware virtualization to accomplish
-the virtualization of an operating system. This has the benefit of separating the entire guest OS from the host OS
-without much of the performance drawbacks of software virtualization. However, it is important to note that even with
-hardware acceleration KVM is less performant than Linux containers, as shown by Chae, Lee, and Lee~\cite{ChaeMinSu2017Apco}.
-Therefore, a KVM-based environment should be chosen for the security benefits whenever the performance drawback is
-acceptable.
-
-On a machine hosting VMs, special attention must be paid to the IO operations allowed by the guest machines since this
-is the only part of the VM which must be processed by the host OS. Default settings may be acceptable depending on the
-virtual machine monitor used but should still be verified by the administrator.
-
-\subsection {Comparision to Container-Based Environments}
-
-In a shared-tenant environment, the use of virtual machines is preferred to the use of containers.
-Albakri, Shanmugam, Samy, Idris, and Ahmed outline several risk assessment considerations for an
-organization looking to move assets to a public cloud. They found that the responsibility for security in a cloud
-computing environment is shifted to the cloud provider in a public cloud, and any organization looking to shift
-resources to this environment should consider this when evaluating security risks~\cite{AlbakriSameerHasan2014Sraf}.
-Due to this, a cloud provider looking to sell its resources should ensure that all possible risks of attacks between
-VMs have been mitigated.
-
-\subsection {Overview of issues}
-
-\begin{table}
+\begin{table}[H]
     \caption{Scanning and remediation for libvirt issues}
     \begin{center}
         \begin{tabular}{||p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}||}
@@ -67,6 +25,45 @@ VMs have been mitigated.
     \end{center}
 \end{table}
 
+\section {Overview of KVM}
+
+Virtualization today relies heavily on KVM in the Linux kernel. Most cloud providers will use this software in order
+to create and manage virtual machines, although they may use proprietary software to manage the virtualization frontend.
+If the CPU has hardware virtualization enabled then KVM uses hardware virtualization to accomplish
+the virtualization of an operating system. This has the benefit of separating the entire guest OS from the host OS
+without much of the performance drawbacks of software virtualization. However, it is important to note that even with
+hardware acceleration KVM is less performant than Linux containers, as shown by Chae, Lee, and Lee~\cite{ChaeMinSu2017Apco}.
+Therefore, a KVM-based environment should be chosen for the security benefits whenever the performance drawback is
+acceptable.
+
+On a machine hosting VMs, special attention must be paid to the IO operations allowed by the guest machines since this
+is the only part of the VM which must be processed by the host OS. Default settings may be acceptable depending on the
+virtual machine monitor used but should still be verified by the administrator.
+
+
+\subsection{Guidelines and Considerations}
+
+The first step when setting up a server hosting KVM guests is to verify if general guidelines for Linux machines
+have been followed. A list of common issues can be found in chapter three of this paper. However, there are some
+additional considerations when KVM is in use, especially if the code on the guest should not be trusted such as in a
+public cloud environment. Most of the additional considerations are focused on the additional devices which may be used
+with a VM as well as IO access from the guest to the external network.
+
+KVM allows for the guest's CPU instructions to be sent directly to the processor if hardware virtualization is supported
+by the CPU. This drastically reduces the attack surface and allows us to focus on the components enabling communication between a guest
+and any external device or network. The guidelines outlined by Red Hat, Inc. are a good starting place for
+determining the most secure system configuration~\cite{redhatcustomerservice}.
+
+
+\subsection {Comparision to Container-Based Environments}
+
+In a shared-tenant environment, the use of virtual machines is preferred to the use of containers.
+Albakri, Shanmugam, Samy, Idris, and Ahmed outline several risk assessment considerations for an
+organization looking to move assets to a public cloud. They found that the responsibility for security in a cloud
+computing environment is shifted to the cloud provider in a public cloud, and any organization looking to shift
+resources to this environment should consider this when evaluating security risks~\cite{AlbakriSameerHasan2014Sraf}.
+Due to this, a cloud provider looking to sell its resources should ensure that all possible risks of attacks between
+VMs have been mitigated.
 
 \section{KVM Host Considerations}
 
@@ -124,8 +121,8 @@ A similar issue to granting a guest an entire storage device is granting a guest
 as USB devices. Depending on system requirements this may be necessary for a special system, but this would still
 increase the attack surface significantly and should be avoided.
 
-\begin{figure}[h]
-    \caption{Device driver code required for external devices contributes significantly to the attack surface of a hypervisor.}
+\begin{figure}[H]
+    \caption{Device driver code contributes significantly to the attack surface of a hypervisor}
     \begin{center}
         \includegraphics[width=1\textwidth]{./fig/KVM IO.drawio.png}
     \end{center}
@@ -196,8 +193,8 @@ This means that gVisor's 'Sentry' component is essentially the VM for the contai
 the host machine~\cite{gvisor_docs}. The use of gVisor with containers instead of a virtual machine will lead to greater
 performance than a fully virtualized setup through KVM while minimizing the security drawbacks of a container-only system.
 
-\begin{figure}[h]
-    \caption{gVisor functions as a layer between LXC and the Linux kernel.}
+\begin{figure}[H]
+    \caption{gVisor functions as a layer between LXC and the Linux kernel}
     \begin{center}
         \includegraphics[width=0.5\textwidth]{./fig/gVisor.drawio.png}
     \end{center}
