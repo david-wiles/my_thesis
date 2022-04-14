@@ -1,0 +1,7 @@
+\contentsline {table}{\numberline {2.1}{\ignorespaces Description of Canary commands}}{5}{table.2.1}%
+\contentsline {table}{\numberline {3.1}{\ignorespaces Overview of scanning approaches}}{8}{table.3.1}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Overview of redemdiation approaches}}{9}{table.3.2}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Scanning and remediation for Nginx issues}}{14}{table.4.1}%
+\contentsline {table}{\numberline {5.1}{\ignorespaces Scanning and remediation for native OS issues}}{19}{table.5.1}%
+\contentsline {table}{\numberline {6.1}{\ignorespaces Scanning and remediation for Docker issues}}{30}{table.6.1}%
+\contentsline {table}{\numberline {7.1}{\ignorespaces Scanning and remediation for libvirt issues}}{37}{table.7.1}%
